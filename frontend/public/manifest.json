@@ -1,0 +1,18 @@
+{
+  "name": "Rescue Twin",
+  "short_name": "Rescue Twin",
+  "description": "AI-Powered Disaster Digital Twin for Jammu & Kashmir",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/rescue-twin-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

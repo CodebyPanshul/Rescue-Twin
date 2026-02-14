@@ -13,6 +13,18 @@
 body {
   font-family: var(--font-sans);
   @apply bg-slate-950 text-slate-100 antialiased;
+  -webkit-tap-highlight-color: rgba(56, 189, 248, 0.15);
+}
+
+/* Mobile: safe area for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Map */

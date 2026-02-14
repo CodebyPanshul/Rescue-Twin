@@ -56,9 +56,11 @@ export function useSimulation() {
       if (disasterType === 'earthquake') {
         const result = await simulateEarthquake(magnitude, epicenter);
         setSimulationData(result);
+        saveLastRunToStorage('earthquake', { magnitude, epicenter: result?.epicenter_district_name || epicenter }, result);
       } else {
         const result = await simulateFlood(severity, rainfallOverride);
         setSimulationData(result);
+        saveLastRunToStorage('flood', { severity, rainfall: result?.rainfall_intensity }, result);
       }
     } catch (err) {
       setError(err.message);
@@ -66,6 +68,27 @@ export function useSimulation() {
       setIsLoading(false);
     }
   }, [disasterType, severity, rainfallOverride, magnitude, epicenter]);
+
+  function saveLastRunToStorage(type, params, result) {
+    try {
+      const summary = result?.risk_metrics
+        ? `${(result.risk_metrics.high_risk_zones || 0) + (result.risk_metrics.medium_risk_zones || 0)} zones, ${(result.risk_metrics.total_population_at_risk || 0).toLocaleString()} at risk`
+        : type === 'earthquake'
+          ? `Magnitude ${params.magnitude}, epicenter ${params.epicenter}`
+          : `${params.severity} severity`;
+      localStorage.setItem(
+        'rescue-twin-last-run',
+        JSON.stringify({
+          type,
+          params: type === 'flood' ? { severity: params.severity } : { magnitude: params.magnitude, epicenter: params.epicenter },
+          summary,
+          timestamp: Date.now(),
+        })
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
 
   const runDemo = useCallback(async () => {
     if (disasterType === 'earthquake') {
@@ -76,6 +99,7 @@ export function useSimulation() {
       try {
         const result = await simulateEarthquake(6.5, 'd1');
         setSimulationData(result);
+        saveLastRunToStorage('earthquake', { magnitude: 6.5, epicenter: result?.epicenter_district_name || 'd1' }, result);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -89,6 +113,7 @@ export function useSimulation() {
       try {
         const result = await simulateFlood('high', null);
         setSimulationData(result);
+        saveLastRunToStorage('flood', { severity: 'high', rainfall: result?.rainfall_intensity }, result);
       } catch (err) {
         setError(err.message);
       } finally {

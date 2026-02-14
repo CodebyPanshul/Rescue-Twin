@@ -177,7 +177,7 @@ export default function ControlPanel({
             type="button"
             onClick={onRunSimulation}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 transition-colors"
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 min-h-[48px] transition-colors touch-manipulation"
           >
             {isLoading ? (
               <><span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Running…</>
@@ -195,7 +195,7 @@ export default function ControlPanel({
             type="button"
             onClick={onRunDemo}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium py-2 px-4 transition-colors"
+            className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium py-3 px-4 min-h-[48px] transition-colors touch-manipulation"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />

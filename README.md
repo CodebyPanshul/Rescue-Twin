@@ -17,11 +17,22 @@ An intelligent disaster simulation and response planning system that models floo
 - **What-If Scenario Tool** - Adjust parameters and compare outcomes
 - **Ethical AI Layer** - Transparent methodology with human override
 
+### Mobile & smartphone
+- **Responsive layout** – Simulation page stacks map and controls on small screens; map stays on top with scrollable controls below.
+- **Touch-friendly** – Large tap targets (48px), no hover-only actions.
+- **Mobile menu** – Hamburger menu in the header for Home / Simulation / About on phones.
+- **Add to Home Screen** – Use your browser’s “Add to Home Screen” (or “Install app”) so you can open Rescue Twin like an app. A web app manifest is included.
+
 ### Technical Highlights
 - Real-time flood zone visualization with risk-based coloring
 - Dynamic evacuation route calculation avoiding flooded roads
 - AI confidence scoring and explainable recommendations
 - Responsive design with dark theme emergency aesthetics
+- **Copy report** – Copy simulation summary to clipboard for sharing
+- **Print report** – Open a print-friendly report in a new window
+- **Fullscreen map** – Toggle sidebar to expand the map (toolbar button)
+- **Keyboard shortcut** – `Ctrl+Enter` (or `Cmd+Enter`) to run simulation
+- **Last run on home** – Home page shows your most recent simulation with a quick link back
 
 ## 🏗 Architecture
 
@@ -72,6 +83,74 @@ Where:
 | 0.2-0.4 | Low | Yellow |
 | < 0.2 | Safe | Green |
 
+## 📤 Sharing this folder with someone else
+
+If you **zip the folder** or **copy it** for another person (or they clone the repo):
+
+- **Don’t include** `node_modules`, `venv`, or `frontend\out` — they’re large and machine-specific. If you use Git, they’re already ignored.
+- **The other person needs to run setup once**, then they can start the app like you.
+
+**On their machine (one-time):**
+
+1. Install **Python 3.9+** and **Node.js 18+** first (from python.org and nodejs.org).  
+   SETUP.bat does not install these — it only installs the project’s dependencies.
+2. Open the project folder and **double-click `SETUP.bat`** (Windows).  
+   Or in a terminal: run the commands in “First-time setup” below.
+3. After setup finishes, **double-click `start.bat`** or run **`npm start`** to start the app.
+
+Then open **http://localhost:3000** in the browser. It will work the same as on your machine.
+
+---
+
+## 🌐 Share with others – use on any phone (no PC, no same network)
+
+To let **other people** use the app **only on their phones** (no PC, any network):
+
+1. **Put the app on the internet:** deploy the **frontend** to GitHub Pages and the **backend** to a free host (e.g. Render).
+2. **Connect them** by setting the backend URL in GitHub (one variable).
+3. **Share one link** (your GitHub Pages URL). Anyone opens it on their phone and can run simulations.
+
+**Step-by-step:** see **[DEPLOY_BACKEND.md](DEPLOY_BACKEND.md)**. Summary:
+
+| Step | What to do |
+|------|------------|
+| 1 | Push the project to GitHub and turn on GitHub Pages (Actions). |
+| 2 | Deploy the backend on [Render](https://render.com) (free): Web Service, Python, start command `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`, add env `ALLOW_ANY_ORIGIN=1`. |
+| 3 | In the repo: **Settings** → **Actions** → **Variables** → add `NEXT_PUBLIC_API_URL` = your Render URL. Re-run the “Deploy to GitHub Pages” workflow. |
+| 4 | Share **https://YOUR_USERNAME.github.io/rescue-twin/** with anyone. They open it on their phone and use the app. |
+
+No PC and no same Wi‑Fi needed for them.
+
+---
+
+## 📱 Use on your phone (same Wi‑Fi as your PC)
+
+You can use Rescue Twin on your phone while it runs on your PC—no need to deploy to GitHub.
+
+1. **Start the app on your PC**  
+   Double-click **`start.bat`** (or run **`npm start`**). Keep the window open.
+
+2. **Same Wi‑Fi**  
+   Connect your **phone and PC to the same Wi‑Fi network**.
+
+3. **Find your PC’s IP address**  
+   - On the PC, open a **new** Command Prompt or PowerShell.
+   - Run: **`ipconfig`**
+   - Under your **Wi‑Fi adapter** (e.g. “Wireless LAN adapter Wi-Fi”), find **IPv4 Address** (e.g. `192.168.1.5`).
+
+4. **Open the app on your phone**  
+   In your phone’s browser, go to:  
+   **`http://YOUR_PC_IP:3000`**  
+   Example: **`http://192.168.1.5:3000`**
+
+5. Use the app as usual (simulations, map, etc.). The backend runs on your PC, so everything works.
+
+**Tip:** When you run `start.bat`, the frontend may also print a **“Network”** URL (e.g. `http://192.168.1.5:3000`). You can use that same address on your phone.
+
+**If the phone can’t connect:** Windows Firewall may be blocking port 3000. When prompted, allow Node.js or “Private networks” access, or add an inbound rule for TCP port 3000.
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -79,45 +158,54 @@ Where:
 - Node.js 18+
 - npm or yarn
 
-### Backend Setup
+### One-step start (easiest)
+
+**First-time setup** (once per machine):
+
+| Windows (easiest) | Or manually (any OS) |
+|-------------------|----------------------|
+| Double-click **`SETUP.bat`** | See commands below |
 
 ```bash
-# Navigate to project
-cd rescue-twin
-
-# Create virtual environment (recommended)
+# Install Python dependencies (backend)
 python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # macOS/Linux
 pip install -r requirements.txt
 
-# Start backend server
-cd backend
-python main.py
+# Install Node dependencies (frontend + root helper)
+cd rescue-twin
+npm run install:all
 ```
 
-The API will be available at `http://localhost:8000`
+**Start the whole app in one step:**
 
-### Frontend Setup
+| Option | Command |
+|--------|--------|
+| **Windows (double-click)** | Double-click **`start.bat`** in the project folder |
+| **Any OS (one terminal)** | From project root: **`npm start`** |
 
+- Backend API: `http://localhost:8000`
+- Website: **`http://localhost:3000`** — open this in your browser
+
+---
+
+### Manual start (two terminals)
+
+If you prefer to run backend and frontend separately:
+
+**Terminal 1 – Backend:**
 ```bash
-# In a new terminal, navigate to frontend
+cd rescue-twin
+venv\Scripts\activate
+cd backend && python main.py
+```
+
+**Terminal 2 – Frontend:**
+```bash
 cd rescue-twin/frontend
-
-# Install dependencies
-npm install
-
-# Start development server
 npm run dev
 ```
-
-The app will be available at `http://localhost:3000`
 
 ## 📡 API Endpoints
 

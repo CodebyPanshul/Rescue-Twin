@@ -3,12 +3,25 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+const LAST_RUN_KEY = 'rescue-twin-last-run';
+
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
+  const [lastRun, setLastRun] = useState(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted || typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(LAST_RUN_KEY);
+      if (raw) setLastRun(JSON.parse(raw));
+    } catch (e) {
+      /* ignore */
+    }
+  }, [mounted]);
 
   return (
     <div className="flex-1 flex flex-col">
@@ -43,7 +56,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/simulation"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-lg shadow-lg shadow-sky-500/25 transition-all hover:scale-[1.02]"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[48px] rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-lg shadow-lg shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -53,7 +66,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/about"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-slate-600 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium transition-all"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[48px] rounded-xl border border-slate-600 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium transition-all touch-manipulation"
               >
                 How it works
               </Link>
@@ -61,6 +74,31 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Last run summary (if any) */}
+      {mounted && lastRun && (
+        <section className="border-t border-slate-800 bg-slate-900/30 py-6 px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl" aria-hidden>{lastRun.type === 'earthquake' ? '🏔️' : '🌊'}</span>
+                <div>
+                  <p className="text-sm font-medium text-slate-200">
+                    Last run: {lastRun.type === 'flood' ? `Flood · ${lastRun.params?.severity ?? '—'}` : `Earthquake · M${lastRun.params?.magnitude ?? '—'}`}
+                  </p>
+                  <p className="text-xs text-slate-500">{lastRun.summary}</p>
+                </div>
+              </div>
+              <Link
+                href="/simulation"
+                className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600/80 hover:bg-sky-500 text-white text-sm font-medium transition-colors"
+              >
+                Open simulation
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Features strip */}
       <section className="border-t border-slate-800 bg-slate-900/50 py-16 px-4">

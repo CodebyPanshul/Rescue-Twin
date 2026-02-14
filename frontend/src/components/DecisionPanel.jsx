@@ -1,8 +1,45 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { Panel } from './ui/Panel';
 import { Badge } from './ui/Badge';
 import { MetricCard } from './ui/MetricCard';
+
+function buildReportText(simulationData) {
+  if (!simulationData) return '';
+  const { risk_metrics, emergency_resources, ai_explanation, shelters } = simulationData;
+  const lines = [
+    '--- Rescue Twin Simulation Report ---',
+    `Generated: ${new Date().toISOString()}`,
+    '',
+  ];
+  if (simulationData.disaster_type === 'earthquake') {
+    lines.push(`Disaster: Earthquake | Magnitude ${simulationData.magnitude} | Epicenter: ${simulationData.epicenter_district_name || simulationData.epicenter_district_id}`);
+  } else {
+    lines.push(`Disaster: Flood | Severity: ${simulationData.severity} | Rainfall: ${simulationData.rainfall_intensity ?? 'default'} mm/hr`);
+  }
+  lines.push('');
+  lines.push('Risk metrics:');
+  lines.push(`  Overall risk score: ${((risk_metrics?.overall_risk_score ?? 0) * 100).toFixed(0)}%`);
+  lines.push(`  Population at risk: ${(risk_metrics?.total_population_at_risk ?? 0).toLocaleString()}`);
+  lines.push(`  High/Medium/Low zones: ${risk_metrics?.high_risk_zones ?? 0} / ${risk_metrics?.medium_risk_zones ?? 0} / ${risk_metrics?.low_risk_zones ?? 0}`);
+  lines.push(`  Est. evacuation time: ${risk_metrics?.estimated_evacuation_time_hours ?? 0} h`);
+  lines.push('');
+  lines.push('Emergency resources needed:');
+  lines.push(`  Ambulances: ${emergency_resources?.ambulances_needed ?? 0} | Boats: ${emergency_resources?.rescue_boats_needed ?? 0}`);
+  lines.push(`  Medical teams: ${emergency_resources?.medical_teams_needed ?? 0} | Buses: ${emergency_resources?.evacuation_buses_needed ?? 0}`);
+  lines.push('');
+  lines.push('AI recommendation:');
+  lines.push(`  ${ai_explanation?.recommendation ?? 'N/A'}`);
+  lines.push(`  Confidence: ${((ai_explanation?.confidence_score ?? 0) * 100).toFixed(0)}%`);
+  if (shelters?.length) {
+    lines.push('');
+    lines.push(`Shelters (top 3): ${shelters.slice(0, 3).map((s) => `${s.name} (${s.capacity})`).join(', ')}`);
+  }
+  lines.push('');
+  lines.push('--- End of report ---');
+  return lines.join('\n');
+}
 
 const CHART_ICON = (
   <svg className="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -30,6 +67,35 @@ export default function DecisionPanel({
   showOverrideConfirm,
   setShowOverrideConfirm,
 }) {
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  const handleCopyReport = useCallback(async () => {
+    const text = buildReportText(simulationData);
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    } catch (e) {
+      console.warn('Copy failed', e);
+    }
+  }, [simulationData]);
+
+  const handlePrintReport = useCallback(() => {
+    const text = buildReportText(simulationData);
+    if (!text) return;
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html><html><head><title>Rescue Twin - Simulation Report</title>
+      <style>body{font-family:system-ui,sans-serif;max-width:60rem;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#1e293b;} h1{color:#0f172a;} pre{white-space:pre-wrap;background:#f1f5f9;padding:1rem;border-radius:8px;}</style></head>
+      <body><h1>Rescue Twin – Simulation Report</h1><pre>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body></html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 300);
+  }, [simulationData]);
+
   if (!simulationData) {
     return (
       <Panel title="Decision Intelligence" icon={CHART_ICON}>
@@ -186,6 +252,36 @@ export default function DecisionPanel({
               </ul>
             </div>
           </details>
+        </div>
+
+        {/* Copy / Print report */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleCopyReport}
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-700/80 hover:bg-slate-600/80 text-slate-300 font-medium py-2 px-4 transition-colors text-sm"
+          >
+            {copyFeedback ? (
+              <>✓ Copied!</>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h2m0 0h2v2m0-2v2m0 2h2m0 2v2m0 2h-2m2 2h2a2 2 0 002-2v-2m0 2V6a2 2 0 00-2-2h-2m-2 2h2m2-4h-2m0 0V6a2 2 0 012-2h2a2 2 0 012 2v2" />
+                </svg>
+                Copy report
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handlePrintReport}
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-700/80 hover:bg-slate-600/80 text-slate-300 font-medium py-2 px-4 transition-colors text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12H5a2 2 0 00-2 2v4a2 2 0 002 2h2" />
+            </svg>
+            Print report
+          </button>
         </div>
 
         {/* Human override */}

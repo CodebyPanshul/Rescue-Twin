@@ -5,7 +5,17 @@ import SiteFooter from '../src/components/SiteFooter';
 export const metadata = {
   title: 'Rescue Twin - AI-Powered Disaster Digital Twin',
   description: 'Intelligent disaster simulation and response planning for Jammu & Kashmir, India',
-  icons: { icon: '/rescue-twin-icon.svg' },
+  icons: { icon: '/rescue-twin-icon.svg', apple: '/rescue-twin-icon.svg' },
+  manifest: '/manifest.json',
+  appleWebApp: { capable: true, title: 'Rescue Twin', statusBarStyle: 'black-translucent' },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#0f172a',
 };
 
 export default function RootLayout({ children }) {
