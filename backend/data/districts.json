@@ -1,0 +1,61 @@
+{
+  "city": "Jammu and Kashmir",
+  "description": "Synthetic district data for flood simulation demo - Jammu and Kashmir, India",
+  "districts": [
+    {"id": "d1", "name": "Srinagar", "center": {"lat": 34.08, "lng": 74.80}, "polygon": [{"lat": 34.10, "lng": 74.75}, {"lat": 34.10, "lng": 74.85}, {"lat": 34.06, "lng": 74.85}, {"lat": 34.06, "lng": 74.75}], "population": 45000, "elevation": 1585, "drainage_capacity": 0.4, "has_shelter": false},
+    {"id": "d2", "name": "Ganderbal", "center": {"lat": 34.23, "lng": 74.78}, "polygon": [{"lat": 34.25, "lng": 74.73}, {"lat": 34.25, "lng": 74.83}, {"lat": 34.21, "lng": 74.83}, {"lat": 34.21, "lng": 74.73}], "population": 28000, "elevation": 1620, "drainage_capacity": 0.35, "has_shelter": false},
+    {"id": "d3", "name": "Budgam", "center": {"lat": 34.02, "lng": 74.77}, "polygon": [{"lat": 34.04, "lng": 74.72}, {"lat": 34.04, "lng": 74.82}, {"lat": 34.00, "lng": 74.82}, {"lat": 34.00, "lng": 74.72}], "population": 35000, "elevation": 1590, "drainage_capacity": 0.55, "has_shelter": true, "shelter_capacity": 2000},
+    {"id": "d4", "name": "Anantnag", "center": {"lat": 33.73, "lng": 75.15}, "polygon": [{"lat": 33.75, "lng": 75.10}, {"lat": 33.75, "lng": 75.20}, {"lat": 33.71, "lng": 75.20}, {"lat": 33.71, "lng": 75.10}], "population": 38000, "elevation": 1600, "drainage_capacity": 0.3, "has_shelter": false},
+    {"id": "d5", "name": "Pulwama", "center": {"lat": 33.87, "lng": 74.90}, "polygon": [{"lat": 33.89, "lng": 74.85}, {"lat": 33.89, "lng": 74.95}, {"lat": 33.85, "lng": 74.95}, {"lat": 33.85, "lng": 74.85}], "population": 22000, "elevation": 1595, "drainage_capacity": 0.25, "has_shelter": false},
+    {"id": "d6", "name": "Baramulla", "center": {"lat": 34.20, "lng": 74.35}, "polygon": [{"lat": 34.22, "lng": 74.30}, {"lat": 34.22, "lng": 74.40}, {"lat": 34.18, "lng": 74.40}, {"lat": 34.18, "lng": 74.30}], "population": 31000, "elevation": 1593, "drainage_capacity": 0.5, "has_shelter": true, "shelter_capacity": 2500},
+    {"id": "d7", "name": "Jammu", "center": {"lat": 32.73, "lng": 74.87}, "polygon": [{"lat": 32.75, "lng": 74.82}, {"lat": 32.75, "lng": 74.92}, {"lat": 32.71, "lng": 74.92}, {"lat": 32.71, "lng": 74.82}], "population": 52000, "elevation": 327, "drainage_capacity": 0.45, "has_shelter": true, "shelter_capacity": 4000},
+    {"id": "d8", "name": "Udhampur", "center": {"lat": 32.93, "lng": 75.13}, "polygon": [{"lat": 32.95, "lng": 75.08}, {"lat": 32.95, "lng": 75.18}, {"lat": 32.91, "lng": 75.18}, {"lat": 32.91, "lng": 75.08}], "population": 26000, "elevation": 756, "drainage_capacity": 0.6, "has_shelter": false},
+    {"id": "d9", "name": "Kathua", "center": {"lat": 32.37, "lng": 75.52}, "polygon": [{"lat": 32.39, "lng": 75.47}, {"lat": 32.39, "lng": 75.57}, {"lat": 32.35, "lng": 75.57}, {"lat": 32.35, "lng": 75.47}], "population": 19000, "elevation": 396, "drainage_capacity": 0.35, "has_shelter": false},
+    {"id": "d10", "name": "Kupwara", "center": {"lat": 34.53, "lng": 74.27}, "polygon": [{"lat": 34.55, "lng": 74.22}, {"lat": 34.55, "lng": 74.32}, {"lat": 34.51, "lng": 74.32}, {"lat": 34.51, "lng": 74.22}], "population": 33000, "elevation": 1610, "drainage_capacity": 0.65, "has_shelter": true, "shelter_capacity": 3500}
+  ],
+  "shelters": [
+    {"id": "s1", "name": "Budgam Community Center", "location": {"lat": 34.02, "lng": 74.77}, "capacity": 2000, "current_occupancy": 0, "district_id": "d3"},
+    {"id": "s2", "name": "Baramulla Relief Camp", "location": {"lat": 34.20, "lng": 74.35}, "capacity": 2500, "current_occupancy": 0, "district_id": "d6"},
+    {"id": "s3", "name": "Jammu City Shelter", "location": {"lat": 32.73, "lng": 74.87}, "capacity": 4000, "current_occupancy": 0, "district_id": "d7"},
+    {"id": "s4", "name": "Kupwara District Shelter", "location": {"lat": 34.53, "lng": 74.27}, "capacity": 3500, "current_occupancy": 0, "district_id": "d10"}
+  ],
+  "road_network": {
+    "nodes": [
+      {"id": "n1", "lat": 34.08, "lng": 74.80, "district_id": "d1"},
+      {"id": "n2", "lat": 34.23, "lng": 74.78, "district_id": "d2"},
+      {"id": "n3", "lat": 34.02, "lng": 74.77, "district_id": "d3", "is_shelter": true},
+      {"id": "n4", "lat": 33.73, "lng": 75.15, "district_id": "d4"},
+      {"id": "n5", "lat": 33.87, "lng": 74.90, "district_id": "d5"},
+      {"id": "n6", "lat": 34.20, "lng": 74.35, "district_id": "d6", "is_shelter": true},
+      {"id": "n7", "lat": 32.73, "lng": 74.87, "district_id": "d7", "is_shelter": true},
+      {"id": "n8", "lat": 32.93, "lng": 75.13, "district_id": "d8"},
+      {"id": "n9", "lat": 32.37, "lng": 75.52, "district_id": "d9"},
+      {"id": "n10", "lat": 34.53, "lng": 74.27, "district_id": "d10", "is_shelter": true},
+      {"id": "n11", "lat": 34.08, "lng": 74.78, "district_id": "d1"},
+      {"id": "n12", "lat": 34.02, "lng": 74.80, "district_id": "d3"},
+      {"id": "n13", "lat": 33.85, "lng": 74.90, "district_id": "d5"},
+      {"id": "n14", "lat": 34.20, "lng": 74.38, "district_id": "d6"},
+      {"id": "n15", "lat": 32.75, "lng": 74.87, "district_id": "d7"}
+    ],
+    "edges": [
+      {"from": "n1", "to": "n11"},
+      {"from": "n1", "to": "n12"},
+      {"from": "n11", "to": "n3"},
+      {"from": "n11", "to": "n2"},
+      {"from": "n12", "to": "n3"},
+      {"from": "n12", "to": "n13"},
+      {"from": "n2", "to": "n10"},
+      {"from": "n3", "to": "n13"},
+      {"from": "n13", "to": "n5"},
+      {"from": "n13", "to": "n4"},
+      {"from": "n5", "to": "n4"},
+      {"from": "n2", "to": "n14"},
+      {"from": "n10", "to": "n14"},
+      {"from": "n14", "to": "n6"},
+      {"from": "n7", "to": "n15"},
+      {"from": "n15", "to": "n8"},
+      {"from": "n8", "to": "n9"},
+      {"from": "n8", "to": "n4"}
+    ]
+  }
+}

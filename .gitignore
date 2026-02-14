@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.so
+.env
+.venv/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Build / IDE
+.DS_Store
+*.log
+.env.local
+.env.*.local
+
+# Optional: uncomment if you want to commit frontend/out for static hosting without CI
+# !frontend/out/
