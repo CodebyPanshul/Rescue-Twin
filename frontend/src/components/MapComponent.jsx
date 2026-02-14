@@ -62,6 +62,20 @@ function MapBounds({ zones }) {
   return null;
 }
 
+/** Call invalidateSize so Leaflet recalculates container size (fixes blank map on mobile). */
+function MapResizeFix() {
+  const map = useMap();
+  useEffect(() => {
+    const run = () => {
+      setTimeout(() => map.invalidateSize(), 100);
+    };
+    run();
+    window.addEventListener('resize', run);
+    return () => window.removeEventListener('resize', run);
+  }, [map]);
+  return null;
+}
+
 // India — Jammu and Kashmir state in focus
 const MAP_CENTER = [33.5, 74.9];
 const MAP_ZOOM = 8;
@@ -101,11 +115,13 @@ export default function MapComponent({
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full rounded-xl"
+        style={{ minHeight: '280px' }}
         zoomControl
       >
+        <MapResizeFix />
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapBounds zones={simulationData?.flood_zones || simulationData?.earthquake_zones} />
 

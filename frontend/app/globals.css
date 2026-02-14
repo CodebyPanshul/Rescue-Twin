@@ -27,11 +27,22 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Map */
+/* Map – ensure height so Leaflet renders on mobile */
 .leaflet-container {
-  @apply h-full w-full rounded-xl;
+  @apply w-full rounded-xl;
+  height: 100%;
+  min-height: 280px;
   background: #0f172a;
   font-family: var(--font-sans);
+}
+.leaflet-container.leaflet-touch {
+  /* improve touch on mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+@media (max-width: 768px) {
+  .leaflet-container {
+    min-height: min(50vh, 400px);
+  }
 }
 
 /* Panels & cards use components; keep minimal global overrides */

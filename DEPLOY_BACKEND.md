@@ -42,9 +42,9 @@ If you haven’t already:
      ```
    - **Start Command:**
      ```bash
-     cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+     cd backend && python start_render.py
      ```
-     (Render sets `PORT`; run from `backend` so imports work.)
+     (Uses `backend/start_render.py`, which reads `PORT` from the environment so `--port` always gets a value. Render sets `PORT` automatically.)
 
 5. **Advanced** → **Add Environment Variable**:
    - Key: `ALLOW_ANY_ORIGIN`  
