@@ -30,7 +30,7 @@ export default function RoutesPanel({
 
   return (
     <Panel
-      title="Evacuation Routes"
+      title="Evacuation routing"
       icon={ROUTE_ICON}
       badge={districtRoutes?.length ? `${districtRoutes.length}` : undefined}
     >
