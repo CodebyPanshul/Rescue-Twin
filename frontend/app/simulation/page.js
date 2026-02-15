@@ -8,8 +8,6 @@ import { useGeolocation } from '../../src/hooks/useGeolocation';
 import { getNearestShelter } from '../../src/lib/geoUtils';
 import ControlPanel from '../../src/components/ControlPanel';
 import DecisionPanel from '../../src/components/DecisionPanel';
-import LocationSafetyPanel from '../../src/components/LocationSafetyPanel';
-import RoutesPanel from '../../src/components/RoutesPanel';
 
 const MapComponent = dynamic(() => import('./SimulationMap'), {
   ssr: false,
@@ -171,27 +169,11 @@ export default function SimulationPage() {
               isLoading={isLoading}
               selectedDistrict={selectedDistrict}
               onDistrictClick={handleDistrictClick}
-              userLocation={userLocation}
-              nearestShelterId={nearestShelterId}
-              highlightedRouteKey={highlightedRouteKey}
             />
           </div>
         </div>
         <aside className={`shrink-0 flex flex-col gap-4 overflow-y-auto bg-slate-900/30 transition-all
           ${isFullscreenMap ? 'w-0 p-0 overflow-hidden border-0' : 'w-full md:w-[380px] p-4 md:pl-0 md:border-l border-slate-800/50 max-h-[55vh] md:max-h-none'}`}>
-          <LocationSafetyPanel
-            position={userLocation}
-            error={locationError}
-            loading={locationLoading}
-            onRequestLocation={requestLocation}
-            simulationData={simulationData}
-          />
-          <RoutesPanel
-            simulationData={simulationData}
-            selectedDistrict={selectedDistrict}
-            highlightedRouteKey={highlightedRouteKey}
-            onHighlightRoute={setHighlightedRouteKey}
-          />
           <ControlPanel
             disasterType={disasterType}
             onDisasterTypeChange={setDisasterType}

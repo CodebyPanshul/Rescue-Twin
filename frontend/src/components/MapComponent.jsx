@@ -1,10 +1,17 @@
 'use client';
 
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Polyline, Marker, CircleMarker, Popup, useMap, LayersControl, ScaleControl } from 'react-leaflet';
 import L from 'leaflet';
 import { DISTRICT_POLYGONS } from '../constants/mapData';
 import { getDirectionsUrl } from '../lib/geoUtils';
+
+import { useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Polygon, Polyline, Marker, CircleMarker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { DISTRICT_POLYGONS } from '../constants/mapData';
+
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -104,7 +111,9 @@ export default function MapComponent({
   onDistrictClick,
   userLocation = null,
   nearestShelterId = null,
+EAD
   highlightedRouteKey = null,
+
 }) {
   const mapRef = useRef(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
@@ -381,6 +390,36 @@ export default function MapComponent({
           </CircleMarker>
         ))}
 
+
+        {/* User's live location */}
+        {userLocation && (
+
+        {/* Human vulnerability overlay */}
+        {layers.vulnerability && VULNERABILITY_POINTS.map((point, i) => (
+          <CircleMarker
+            key={`vuln-${i}`}
+            center={[point.lat, point.lng]}
+            pathOptions={{
+              radius: point.risk === 'critical' ? 12 : 8,
+              color: point.risk === 'critical' ? '#dc2626' : '#f59e0b',
+              fillColor: point.risk === 'critical' ? '#ef4444' : '#f59e0b',
+              fillOpacity: 0.7,
+              weight: 2,
+            }}
+          >
+            <Popup>
+              <div className="min-w-[180px] text-slate-200">
+                <h3 className="font-semibold text-base mb-1 flex items-center gap-2">
+                  <span className="text-amber-400">👥</span>
+                  {point.label}
+                </h3>
+                <p className="text-xs text-slate-400">Type: {point.type.replace('_', ' ')}</p>
+                <p className="text-xs font-medium text-red-400">Critical Human Risk Zone</p>
+              </div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
         {/* User's live location */}
         {userLocation && (
           <Marker
@@ -391,6 +430,33 @@ export default function MapComponent({
               <div className="min-w-[160px] text-slate-200">
                 <h3 className="font-semibold text-base mb-1 flex items-center gap-2">
                   <span className="text-blue-400">📍</span> Your location
+                </h3>
+                <p className="text-xs text-slate-400">{userLocation.lat.toFixed(5)}, {userLocation.lng.toFixed(5)}</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {layers.shelters && simulationData?.shelters?.map((shelter) => (
+
+          <Marker
+            position={[userLocation.lat, userLocation.lng]}
+            icon={userLocationIcon}
+          >
+            <Popup>
+
+              <div className="min-w-[160px] text-slate-200">
+                <h3 className="font-semibold text-base mb-1 flex items-center gap-2">
+                  <span className="text-blue-400">📍</span> Your location
+
+              <div className="min-w-[180px] text-slate-200">
+                <h3 className="font-semibold text-base mb-2 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  {shelter.name}
+                  {nearestShelterId === shelter.id && (
+                    <span className="text-xs bg-sky-500/30 text-sky-300 px-1.5 py-0.5 rounded">Nearest</span>
+                  )}
+
                 </h3>
                 <p className="text-xs text-slate-400">{userLocation.lat.toFixed(5)}, {userLocation.lng.toFixed(5)}</p>
               </div>
