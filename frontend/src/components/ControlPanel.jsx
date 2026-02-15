@@ -168,7 +168,12 @@ export default function ControlPanel({
               <input type="checkbox" checked={layers.shelters} onChange={() => onLayerToggle('shelters')} className="rounded border-slate-600 bg-slate-700 text-sky-500 focus:ring-sky-500/50" />
               <span className="text-sm text-slate-300 group-hover:text-slate-200">Shelters</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" checked={layers.vulnerability} onChange={() => onLayerToggle('vulnerability')} className="rounded border-slate-600 bg-slate-700 text-amber-500 focus:ring-amber-500/50" />
+              <span className="text-sm text-slate-300 group-hover:text-slate-200">👥 Human vulnerability overlay</span>
+            </label>
           </div>
+          <p className="text-xs text-slate-500 mt-1">Elderly clusters, schools, hospitals, high-risk population zones</p>
         </div>
 
         {/* Actions */}

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import CORS_ORIGINS, APP_TITLE, APP_DESCRIPTION, APP_VERSION
-from routers import health, simulation, districts
+from routers import health, simulation, districts, intelligence
 
 app = FastAPI(
     title=APP_TITLE,
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(simulation.router)
 app.include_router(districts.router)
+app.include_router(intelligence.router)
 
 
 if __name__ == "__main__":

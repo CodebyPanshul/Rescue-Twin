@@ -17,7 +17,13 @@
     {"id": "s1", "name": "Budgam Community Center", "location": {"lat": 34.02, "lng": 74.77}, "capacity": 2000, "current_occupancy": 0, "district_id": "d3"},
     {"id": "s2", "name": "Baramulla Relief Camp", "location": {"lat": 34.20, "lng": 74.35}, "capacity": 2500, "current_occupancy": 0, "district_id": "d6"},
     {"id": "s3", "name": "Jammu City Shelter", "location": {"lat": 32.73, "lng": 74.87}, "capacity": 4000, "current_occupancy": 0, "district_id": "d7"},
-    {"id": "s4", "name": "Kupwara District Shelter", "location": {"lat": 34.53, "lng": 74.27}, "capacity": 3500, "current_occupancy": 0, "district_id": "d10"}
+    {"id": "s4", "name": "Kupwara District Shelter", "location": {"lat": 34.53, "lng": 74.27}, "capacity": 3500, "current_occupancy": 0, "district_id": "d10"},
+    {"id": "s5", "name": "Srinagar City Shelter", "location": {"lat": 34.09, "lng": 74.80}, "capacity": 3000, "current_occupancy": 0, "district_id": "d1"},
+    {"id": "s6", "name": "Ganderbal Relief Center", "location": {"lat": 34.24, "lng": 74.79}, "capacity": 1800, "current_occupancy": 0, "district_id": "d2"},
+    {"id": "s7", "name": "Anantnag Sports Complex Shelter", "location": {"lat": 33.74, "lng": 75.16}, "capacity": 2200, "current_occupancy": 0, "district_id": "d4"},
+    {"id": "s8", "name": "Pulwama Town Hall Shelter", "location": {"lat": 33.88, "lng": 74.92}, "capacity": 1500, "current_occupancy": 0, "district_id": "d5"},
+    {"id": "s9", "name": "Udhampur College Shelter", "location": {"lat": 32.93, "lng": 75.14}, "capacity": 1600, "current_occupancy": 0, "district_id": "d8"},
+    {"id": "s10", "name": "Kathua Community Ground Shelter", "location": {"lat": 32.38, "lng": 75.53}, "capacity": 1400, "current_occupancy": 0, "district_id": "d9"}
   ],
   "road_network": {
     "nodes": [
@@ -35,7 +41,13 @@
       {"id": "n12", "lat": 34.02, "lng": 74.80, "district_id": "d3"},
       {"id": "n13", "lat": 33.85, "lng": 74.90, "district_id": "d5"},
       {"id": "n14", "lat": 34.20, "lng": 74.38, "district_id": "d6"},
-      {"id": "n15", "lat": 32.75, "lng": 74.87, "district_id": "d7"}
+      {"id": "n15", "lat": 32.75, "lng": 74.87, "district_id": "d7"},
+      {"id": "n16", "lat": 34.09, "lng": 74.80, "district_id": "d1", "is_shelter": true},
+      {"id": "n17", "lat": 34.24, "lng": 74.79, "district_id": "d2", "is_shelter": true},
+      {"id": "n18", "lat": 33.74, "lng": 75.16, "district_id": "d4", "is_shelter": true},
+      {"id": "n19", "lat": 33.88, "lng": 74.92, "district_id": "d5", "is_shelter": true},
+      {"id": "n20", "lat": 32.93, "lng": 75.14, "district_id": "d8", "is_shelter": true},
+      {"id": "n21", "lat": 32.38, "lng": 75.53, "district_id": "d9", "is_shelter": true}
     ],
     "edges": [
       {"from": "n1", "to": "n11"},
@@ -55,7 +67,16 @@
       {"from": "n7", "to": "n15"},
       {"from": "n15", "to": "n8"},
       {"from": "n8", "to": "n9"},
-      {"from": "n8", "to": "n4"}
+      {"from": "n8", "to": "n4"},
+      {"from": "n11", "to": "n16"},
+      {"from": "n2", "to": "n17"},
+      {"from": "n4", "to": "n18"},
+      {"from": "n5", "to": "n19"},
+      {"from": "n8", "to": "n20"},
+      {"from": "n9", "to": "n21"},
+      {"from": "n2", "to": "n6"},
+      {"from": "n11", "to": "n3"},
+      {"from": "n5", "to": "n7"}
     ]
   }
 }

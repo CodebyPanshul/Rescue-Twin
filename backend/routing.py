@@ -152,7 +152,8 @@ def compute_evacuation_routes(
     shelters: List[Shelter]
 ) -> List[EvacuationRoute]:
     """
-    Compute evacuation routes from flooded districts to nearest shelters.
+    Compute evacuation routes from flooded districts to shelters.
+    Returns multiple alternatives per district (best + up to 2 alternatives).
     
     Args:
         flood_zones: List of flood zone assessments
@@ -177,7 +178,7 @@ def compute_evacuation_routes(
     
     routes = []
     
-    # For each at-risk district, find evacuation route
+    # For each at-risk district, find evacuation routes
     for fz in flood_zones:
         if fz.risk_score < 0.3:  # Skip very low risk areas
             continue
@@ -192,32 +193,45 @@ def compute_evacuation_routes(
             continue
         
         start_node = district_nodes[0]
-        shelter_id, distance, path = find_nearest_shelter(graph, start_node, shelter_nodes)
-        
-        if shelter_id and path:
+        try:
+            distances, paths = nx.single_source_dijkstra(graph, start_node)
+        except nx.NetworkXNoPath:
+            continue
+
+        # Collect reachable shelters with distances
+        reachable = [
+            (sid, distances[sid], paths[sid])
+            for sid in shelter_nodes if sid in distances
+        ]
+        # Sort by distance and take top K
+        reachable.sort(key=lambda x: x[1])
+        K = 3
+        for rank, (sid, dist, path) in enumerate(reachable[:K]):
             coordinates = path_to_coordinates(graph, path)
-            
-            # Estimate time (assuming 30 km/h average speed in emergency)
-            time_minutes = (distance / 30) * 60 if distance else 0
-            
+            time_minutes = (dist / 30) * 60 if dist else 0
+
             # Check if route passes through heavily flooded areas
             is_accessible = True
             for node_id in path[1:-1]:  # Exclude start and end
                 node_district = graph.nodes[node_id].get("district_id")
                 if node_district in flooded_districts:
-                    # Check flood depth
                     for fz_check in flood_zones:
                         if fz_check.district_id == node_district and fz_check.flood_depth > 0.5:
                             is_accessible = False
                             break
-            
+                if not is_accessible:
+                    break
+
+            to_shelter_name = shelter_map.get(sid).name if sid in shelter_map else None
             routes.append(EvacuationRoute(
                 from_district=fz.district_id,
-                to_shelter=shelter_id,
+                to_shelter=sid,
+                to_shelter_name=to_shelter_name,
                 path=coordinates,
-                distance_km=round(distance, 2) if distance else 0,
+                distance_km=round(dist, 2) if dist else 0,
                 estimated_time_minutes=round(time_minutes, 1),
-                is_accessible=is_accessible
+                is_accessible=is_accessible,
+                rank=rank
             ))
     
     return routes

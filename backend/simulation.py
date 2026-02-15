@@ -6,9 +6,15 @@ Flood Risk Score = (0.5 × Rainfall Intensity) + (0.3 × Elevation Inverse) + (0
 """
 import json
 import math
+import os
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
+try:
+    import httpx  # type: ignore
+except Exception:
+    httpx = None
 
 from models import (
     District, FloodZone, Shelter, Severity, DisasterType,
@@ -37,12 +43,83 @@ def load_districts() -> List[District]:
     return [District(**d) for d in data["districts"]]
 
 
+_SHELTER_CACHE: dict = {"ts": 0.0, "data": None}
+_SHELTER_TTL_SECONDS = 600
+
+
+def _fetch_remote_shelters() -> List[dict] | None:
+    url = os.environ.get("SHELTERS_FEED_URL")
+    if not url:
+        return None
+    try:
+        if httpx is None:
+            return None
+        with httpx.Client(timeout=4.0) as client:
+            resp = client.get(url)
+            resp.raise_for_status()
+            payload = resp.json()
+            items = payload.get("shelters", payload) if isinstance(payload, (list, dict)) else None
+            if isinstance(items, list):
+                canonical = []
+                for it in items:
+                    try:
+                        loc = it.get("location") or {}
+                        lat = loc.get("lat") if isinstance(loc, dict) else it.get("lat")
+                        lng = loc.get("lng") if isinstance(loc, dict) else it.get("lng")
+                        sid = str(it.get("id") or it.get("shelter_id"))
+                        if not sid or lat is None or lng is None:
+                            continue
+                        canonical.append({
+                            "id": sid,
+                            "name": it.get("name") or f"Shelter {sid}",
+                            "location": {"lat": float(lat), "lng": float(lng)},
+                            "capacity": int(it.get("capacity") or 0),
+                            "current_occupancy": int(it.get("current_occupancy") or it.get("occupancy") or 0),
+                            "district_id": it.get("district_id") or "",
+                            "contact_phone": it.get("contact") or it.get("contact_phone"),
+                            "address": it.get("address"),
+                            "last_updated": it.get("last_updated"),
+                        })
+                    except Exception:
+                        continue
+                return canonical
+    except Exception:
+        return None
+    return None
+
+
 def load_shelters() -> List[Shelter]:
-    """Load shelter data from JSON file."""
+    """Load shelters from local JSON and merge optional live metadata from remote feed."""
     data_path = Path(__file__).parent / "data" / "districts.json"
     with open(data_path, "r") as f:
         data = json.load(f)
-    return [Shelter(**s) for s in data["shelters"]]
+    local_shelters = [Shelter(**s) for s in data["shelters"]]
+    now = time.time()
+    use_cache = (_SHELTER_CACHE["data"] is not None) and (now - _SHELTER_CACHE["ts"] < _SHELTER_TTL_SECONDS)
+    remote = _SHELTER_CACHE["data"] if use_cache else _fetch_remote_shelters()
+    if remote is not None and not use_cache:
+        _SHELTER_CACHE["data"] = remote
+        _SHELTER_CACHE["ts"] = now
+    if not remote:
+        return local_shelters
+    by_id = {s.id: s for s in local_shelters}
+    for r in remote:
+        sid = r.get("id")
+        if not sid:
+            continue
+        if sid in by_id:
+            s = by_id[sid]
+            s.capacity = r.get("capacity", s.capacity)
+            s.current_occupancy = r.get("current_occupancy", s.current_occupancy)
+            s.contact_phone = r.get("contact_phone", s.contact_phone)
+            s.address = r.get("address", s.address)
+            s.last_updated = r.get("last_updated", s.last_updated)
+        else:
+            try:
+                by_id[sid] = Shelter(**r)
+            except Exception:
+                continue
+    return list(by_id.values())
 
 
 def normalize_rainfall(rainfall_mm: float, max_rainfall: float = 150.0) -> float:

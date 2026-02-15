@@ -7,6 +7,7 @@ const DEFAULT_LAYERS = {
   floodZones: true,
   routes: true,
   shelters: true,
+  vulnerability: false,
 };
 
 export function useSimulation() {
@@ -19,6 +20,7 @@ export function useSimulation() {
   const [magnitude, setMagnitude] = useState(6);
   const [epicenter, setEpicenter] = useState('d1');
   const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [highlightedRouteKey, setHighlightedRouteKey] = useState(null);
   const [showOverrideConfirm, setShowOverrideConfirm] = useState(false);
   const [layers, setLayers] = useState(DEFAULT_LAYERS);
   const [backendStatus, setBackendStatus] = useState('checking');
@@ -128,6 +130,7 @@ export function useSimulation() {
 
   const handleDistrictClick = useCallback((zone) => {
     setSelectedDistrict(zone?.district_id ?? null);
+    setHighlightedRouteKey(null);
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
@@ -148,6 +151,8 @@ export function useSimulation() {
     epicenter,
     setEpicenter,
     selectedDistrict,
+    highlightedRouteKey,
+    setHighlightedRouteKey,
     layers,
     showOverrideConfirm,
     backendStatus,

@@ -2,7 +2,7 @@ import { Card, CardContent } from './Card';
 
 export function Panel({ title, icon, children, className = '', badge }) {
   return (
-    <Card className={`flex flex-col overflow-hidden ${className}`}>
+    <Card className={`flex flex-col overflow-hidden ${className}`} padding="none">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/80">
         <span className="flex items-center gap-2 font-semibold text-slate-200">
           {icon}

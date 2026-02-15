@@ -52,15 +52,20 @@ class Shelter(BaseModel):
     capacity: int
     current_occupancy: int = 0
     district_id: str
+    contact_phone: Optional[str] = None
+    address: Optional[str] = None
+    last_updated: Optional[str] = None
 
 
 class EvacuationRoute(BaseModel):
     from_district: str
     to_shelter: str
+    to_shelter_name: Optional[str] = None
     path: List[Coordinate]
     distance_km: float
     estimated_time_minutes: float
     is_accessible: bool = True
+    rank: Optional[int] = None
 
 
 class EmergencyResources(BaseModel):

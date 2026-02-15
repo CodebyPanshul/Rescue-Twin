@@ -1,10 +1,9 @@
 import './globals.css';
-import SiteHeader from '../src/components/SiteHeader';
-import SiteFooter from '../src/components/SiteFooter';
+import ClientApp from '../src/components/ClientApp';
 
 export const metadata = {
-  title: 'Rescue Twin - AI-Powered Disaster Digital Twin',
-  description: 'Intelligent disaster simulation and response planning for Jammu & Kashmir, India',
+  title: 'Rescue Twin - Autonomous Disaster Intelligence Platform',
+  description: 'Real-time disaster digital twin, AI resource optimization, and decision support for Jammu & Kashmir, India',
   icons: { icon: '/rescue-twin-icon.svg', apple: '/rescue-twin-icon.svg' },
   manifest: '/manifest.json',
   appleWebApp: { capable: true, title: 'Rescue Twin', statusBarStyle: 'black-translucent' },
@@ -36,9 +35,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-        <SiteHeader />
-        <main className="flex-1 flex flex-col">{children}</main>
-        <SiteFooter />
+        <ClientApp>{children}</ClientApp>
       </body>
     </html>
   );

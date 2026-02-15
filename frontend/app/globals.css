@@ -80,3 +80,20 @@ body {
 *:focus-visible {
   @apply outline-2 outline-offset-2 outline-sky-500;
 }
+
+/* Disaster command dashboard theme */
+.dashboard-card {
+  @apply rounded-xl border border-slate-700/80 bg-slate-800/60 backdrop-blur-sm transition-colors hover:border-slate-600/80;
+}
+.live-indicator {
+  @apply inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400;
+}
+.live-indicator::before {
+  content: '';
+  @apply w-2 h-2 rounded-full bg-emerald-500 animate-pulse;
+}
+
+/* Emergency / low-bandwidth mode */
+.emergency-mode .dashboard-card { @apply border-slate-700 bg-slate-800/80; }
+.emergency-mode .animate-pulse-slow { animation: none; }
+.emergency-mode .animate-float { animation: none; }
