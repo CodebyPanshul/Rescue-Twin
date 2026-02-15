@@ -5,11 +5,14 @@
 const rawBase = process.env.NEXT_PUBLIC_BASE_PATH || '';
 const basePath = rawBase && String(rawBase).trim() && rawBase !== 'undefined' ? rawBase : '';
 
+// Use static export only for production build (npm run build). Dev server runs normally.
+const isDev = process.env.NODE_ENV !== 'production';
+
 const nextConfig = {
   reactStrictMode: true,
-  output: 'export',
-  basePath,
-  assetPrefix: basePath ? `${basePath}/` : undefined,
+  ...(isDev ? {} : { output: 'export' }),
+  basePath: isDev ? '' : basePath,
+  assetPrefix: basePath && !isDev ? `${basePath}/` : undefined,
   trailingSlash: true,
   images: { unoptimized: true },
   // In dev, proxy /api to backend so the browser makes same-origin requests (no CORS)

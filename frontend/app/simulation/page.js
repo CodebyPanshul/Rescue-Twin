@@ -1,10 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useEmergencyMode } from '../../src/context/EmergencyContext';
 import { useSimulation } from '../../src/hooks/useSimulation';
+import { useGeolocation } from '../../src/hooks/useGeolocation';
+import { getNearestShelter } from '../../src/lib/geoUtils';
 import ControlPanel from '../../src/components/ControlPanel';
 import DecisionPanel from '../../src/components/DecisionPanel';
+import LocationSafetyPanel from '../../src/components/LocationSafetyPanel';
 
 const MapComponent = dynamic(() => import('./SimulationMap'), {
   ssr: false,
@@ -19,7 +23,9 @@ const MapComponent = dynamic(() => import('./SimulationMap'), {
 });
 
 export default function SimulationPage() {
+  const { emergencyMode } = useEmergencyMode();
   const [isFullscreenMap, setIsFullscreenMap] = useState(false);
+  const { position: userLocation, error: locationError, loading: locationLoading, requestLocation } = useGeolocation();
   const {
     simulationData,
     isLoading,
@@ -47,6 +53,12 @@ export default function SimulationPage() {
     recheckApi,
   } = useSimulation();
 
+  const nearestShelter = useMemo(() => {
+    if (!userLocation || !simulationData?.shelters?.length) return null;
+    return getNearestShelter(userLocation.lat, userLocation.lng, simulationData.shelters);
+  }, [userLocation, simulationData?.shelters]);
+  const nearestShelterId = nearestShelter?.shelter?.id ?? null;
+
   useEffect(() => {
     const onKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -65,10 +77,26 @@ export default function SimulationPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
+      {/* Emergency mode: SMS-style alert preview */}
+      {emergencyMode && (
+        <div className="shrink-0 px-4 py-2 bg-slate-800 border-b border-slate-700">
+          <p className="text-xs text-slate-500 mb-1">SMS-style alert preview</p>
+          <div className="rounded-lg border border-slate-600 bg-slate-900 p-3 text-sm text-slate-200 font-mono max-w-md">
+            [Rescue Twin] High risk in your area. Evacuate to nearest shelter. Follow official routes. Reply HELP for info.
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="shrink-0 flex items-center justify-between px-3 sm:px-4 py-2 border-b border-slate-800 bg-slate-900/80 gap-2">
         <h1 className="text-base sm:text-lg font-semibold text-white truncate min-w-0">Simulation · J&amp;K</h1>
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {isLoading && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-400">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              Model running…
+            </span>
+          )}
           <button
             type="button"
             onClick={() => setIsFullscreenMap((v) => !v)}
@@ -140,11 +168,20 @@ export default function SimulationPage() {
               isLoading={isLoading}
               selectedDistrict={selectedDistrict}
               onDistrictClick={handleDistrictClick}
+              userLocation={userLocation}
+              nearestShelterId={nearestShelterId}
             />
           </div>
         </div>
         <aside className={`shrink-0 flex flex-col gap-4 overflow-y-auto bg-slate-900/30 transition-all
           ${isFullscreenMap ? 'w-0 p-0 overflow-hidden border-0' : 'w-full md:w-[380px] p-4 md:pl-0 md:border-l border-slate-800/50 max-h-[55vh] md:max-h-none'}`}>
+          <LocationSafetyPanel
+            position={userLocation}
+            error={locationError}
+            loading={locationLoading}
+            onRequestLocation={requestLocation}
+            simulationData={simulationData}
+          />
           <ControlPanel
             disasterType={disasterType}
             onDisasterTypeChange={setDisasterType}

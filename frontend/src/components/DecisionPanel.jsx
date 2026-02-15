@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { getRiskVariant, getRiskLabel } from '../constants/riskLevels';
 import { Panel } from './ui/Panel';
 import { Badge } from './ui/Badge';
 import { MetricCard } from './ui/MetricCard';
@@ -46,20 +47,6 @@ const CHART_ICON = (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
   </svg>
 );
-
-function getRiskVariant(score) {
-  if (score >= 0.7) return 'critical';
-  if (score >= 0.4) return 'warning';
-  if (score >= 0.2) return 'advisory';
-  return 'normal';
-}
-
-function getRiskLabel(score) {
-  if (score >= 0.7) return 'Critical';
-  if (score >= 0.4) return 'Warning';
-  if (score >= 0.2) return 'Advisory';
-  return 'Normal';
-}
 
 export default function DecisionPanel({
   simulationData,
@@ -237,6 +224,22 @@ export default function DecisionPanel({
             </Badge>
           </div>
           <p className="text-sm text-slate-300 mb-3">{ai_explanation?.recommendation}</p>
+          {(riskScore >= 0.4) && (
+            <details className="text-xs mb-2">
+              <summary className="cursor-pointer text-slate-400 hover:text-slate-300 select-none font-medium">
+                Why is this marked {getRiskLabel(riskScore)}?
+              </summary>
+              <div className="mt-2 space-y-1.5 text-slate-400">
+                <p className="text-slate-300">Key contributing factors and risk weight:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {(ai_explanation?.factors_considered || []).slice(0, 4).map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+                <p>Overall risk: <span className="font-medium text-amber-400">{(riskScore * 100).toFixed(0)}%</span></p>
+              </div>
+            </details>
+          )}
           <details className="text-xs">
             <summary className="cursor-pointer text-slate-400 hover:text-slate-300 select-none">
               Methodology & limitations

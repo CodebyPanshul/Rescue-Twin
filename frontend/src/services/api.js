@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getApiErrorMessage } from '../lib/apiError';
 
 // In dev we proxy /api -> backend (next.config rewrites), so same-origin = no CORS.
 // Override with NEXT_PUBLIC_API_URL for production or custom backend.
@@ -35,9 +36,7 @@ export const simulateFlood = async (intensity = 'medium', rainfall = null) => {
     return response.data;
   } catch (error) {
     console.error('Simulation error:', error);
-    throw new Error(
-      error.response?.data?.detail || 'Failed to run simulation. Is the backend running?'
-    );
+    throw new Error(getApiErrorMessage(error) || 'Failed to run simulation. Is the backend running?');
   }
 };
 
@@ -51,7 +50,7 @@ export const checkHealth = async () => {
     return response.data;
   } catch (error) {
     console.error('Health check error:', error);
-    throw new Error('Backend is not available');
+    throw new Error(getApiErrorMessage(error) || 'Backend is not available');
   }
 };
 
@@ -69,9 +68,7 @@ export const simulateEarthquake = async (magnitude = 6, epicenter = 'd1') => {
     return response.data;
   } catch (error) {
     console.error('Earthquake simulation error:', error);
-    throw new Error(
-      error.response?.data?.detail || 'Failed to run earthquake simulation. Is the backend running?'
-    );
+    throw new Error(getApiErrorMessage(error) || 'Failed to run earthquake simulation. Is the backend running?');
   }
 };
 
@@ -85,8 +82,53 @@ export const getDistricts = async () => {
     return response.data;
   } catch (error) {
     console.error('Get districts error:', error);
-    throw new Error('Failed to load districts');
+    throw new Error(getApiErrorMessage(error) || 'Failed to load districts');
   }
+};
+
+// --- Intelligence APIs (Autonomous Disaster Intelligence Platform) ---
+
+async function intelligenceRequest(requestFn) {
+  try {
+    const response = await requestFn();
+    return response.data;
+  } catch (error) {
+    console.error('Intelligence API error:', error);
+    throw new Error(getApiErrorMessage(error) || 'Request failed. Is the backend running?');
+  }
+}
+
+export const getLiveFloodSnapshot = async (seed = null) => {
+  const params = seed != null ? { seed } : {};
+  return intelligenceRequest(() => api.get('/intelligence/flood-live', { params }));
+};
+
+export const resourceOptimize = async (body) => {
+  return intelligenceRequest(() => api.post('/intelligence/resource-optimize', body));
+};
+
+export const getStrategicActions = async (scenario = 'flood_high') => {
+  return intelligenceRequest(() => api.get('/intelligence/strategic-actions', { params: { scenario } }));
+};
+
+export const getCascadingChains = async () => {
+  return intelligenceRequest(() => api.get('/intelligence/cascading-chains'));
+};
+
+export const getResilienceScore = async (params = {}) => {
+  return intelligenceRequest(() => api.get('/intelligence/resilience-score', { params }));
+};
+
+export const getInfrastructureStress = async (scenario = 'flood_high') => {
+  return intelligenceRequest(() => api.get('/intelligence/infrastructure-stress', { params: { scenario } }));
+};
+
+export const getEconomyImpact = async (severity = 'high') => {
+  return intelligenceRequest(() => api.get('/intelligence/economy-impact', { params: { severity } }));
+};
+
+export const generateAlert = async (riskSeverity, language = 'en') => {
+  return intelligenceRequest(() => api.post('/intelligence/alerts', { risk_severity: riskSeverity, language }));
 };
 
 export default api;

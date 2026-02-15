@@ -48,10 +48,10 @@ export default function HomePage() {
               Rescue Twin
             </h1>
             <p className="text-xl sm:text-2xl text-sky-200/90 mb-2">
-              AI-Powered Disaster Digital Twin
+              Autonomous Disaster Intelligence Platform
             </p>
             <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-10">
-              Simulate floods and earthquakes for Jammu &amp; Kashmir. Plan evacuations, assess risk, and get AI-backed recommendations—all in one place.
+              Real-time flood intelligence, AI resource optimization, strategic action simulation, and multi-disaster cascading chains for Jammu &amp; Kashmir. National-grade command dashboard.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
@@ -62,12 +62,15 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Launch Simulation
+                Run Simulation
               </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[48px] rounded-xl border border-slate-600 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium transition-all touch-manipulation"
-              >
+              <Link href="/flood-intelligence" className="inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[48px] rounded-xl border border-sky-500/50 bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 font-medium transition-all touch-manipulation">
+                🌊 Flood Intelligence
+              </Link>
+              <Link href="/command-center" className="inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[48px] rounded-xl border border-slate-600 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium transition-all touch-manipulation">
+                📊 Command Center
+              </Link>
+              <Link href="/about" className="inline-flex items-center justify-center gap-2 px-8 py-4 min-h-[48px] rounded-xl border border-slate-600 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 font-medium transition-all touch-manipulation">
                 How it works
               </Link>
             </div>
@@ -103,29 +106,28 @@ export default function HomePage() {
       {/* Features strip */}
       <section className="border-t border-slate-800 bg-slate-900/50 py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl font-bold text-white text-center mb-12">What you can do</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6 text-center hover:border-sky-500/30 transition-colors">
-              <div className="w-14 h-14 rounded-xl bg-sky-500/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl" aria-hidden>🌊</span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Flood simulation</h3>
-              <p className="text-slate-400 text-sm">Set severity and rainfall. See risk zones, evacuation routes, and resource needs.</p>
-            </div>
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6 text-center hover:border-amber-500/30 transition-colors">
-              <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl" aria-hidden>🏔️</span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Earthquake scenario</h3>
-              <p className="text-slate-400 text-sm">Pick magnitude and epicenter. View shaking intensity and affected districts.</p>
-            </div>
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6 text-center hover:border-emerald-500/30 transition-colors">
-              <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl" aria-hidden>🧭</span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Evacuation &amp; AI</h3>
-              <p className="text-slate-400 text-sm">Evacuation routes, shelter capacity, and explainable AI recommendations.</p>
-            </div>
+          <h2 className="text-2xl font-bold text-white text-center mb-12">Platform capabilities</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link href="/flood-intelligence" className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6 text-center hover:border-sky-500/30 transition-colors block">
+              <div className="w-14 h-14 rounded-xl bg-sky-500/20 flex items-center justify-center mx-auto mb-4"><span className="text-2xl" aria-hidden>🌊</span></div>
+              <h3 className="text-lg font-semibold text-white mb-2">Real-Time Flood Intelligence</h3>
+              <p className="text-slate-400 text-sm">Live adaptive digital twin, risk meter, projected growth chart, heatmap zones. Auto-refresh every 5–10s.</p>
+            </Link>
+            <Link href="/simulation" className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6 text-center hover:border-amber-500/30 transition-colors block">
+              <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4"><span className="text-2xl" aria-hidden>🗺️</span></div>
+              <h3 className="text-lg font-semibold text-white mb-2">Flood &amp; Earthquake simulation</h3>
+              <p className="text-slate-400 text-sm">Risk zones, evacuation routes, shelters. Human vulnerability overlay. Run simulation with one click.</p>
+            </Link>
+            <Link href="/command-center" className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6 text-center hover:border-emerald-500/30 transition-colors block">
+              <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center mx-auto mb-4"><span className="text-2xl" aria-hidden>🚑</span></div>
+              <h3 className="text-lg font-semibold text-white mb-2">AI Resource Optimization</h3>
+              <p className="text-slate-400 text-sm">Ranked priority zones, ambulance allocation, hospital load balancing, response-time reduction. Explainable decisions.</p>
+            </Link>
+            <Link href="/command-center" className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6 text-center hover:border-violet-500/30 transition-colors block">
+              <div className="w-14 h-14 rounded-xl bg-violet-500/20 flex items-center justify-center mx-auto mb-4"><span className="text-2xl" aria-hidden>⛓️</span></div>
+              <h3 className="text-lg font-semibold text-white mb-2">Cascading chains &amp; training</h3>
+              <p className="text-slate-400 text-sm">Multi-disaster sequences, strategic action simulator, resilience index, economy impact, smart alerts, training mode.</p>
+            </Link>
           </div>
         </div>
       </section>

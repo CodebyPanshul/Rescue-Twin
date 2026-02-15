@@ -15,14 +15,16 @@ export default function SiteFooter() {
             </div>
             <span className="text-sm font-semibold text-slate-300">Rescue Twin</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-slate-500">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-slate-500">
             <Link href="/" className="hover:text-slate-300 transition-colors">Home</Link>
             <Link href="/simulation" className="hover:text-slate-300 transition-colors">Simulation</Link>
+            <Link href="/flood-intelligence" className="hover:text-slate-300 transition-colors">Flood Intelligence</Link>
+            <Link href="/command-center" className="hover:text-slate-300 transition-colors">Command Center</Link>
             <Link href="/about" className="hover:text-slate-300 transition-colors">About</Link>
           </div>
         </div>
         <div className="mt-6 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
-          <p>Rescue Twin v1.0 · AI-powered disaster response for Jammu &amp; Kashmir, India</p>
+          <p>Rescue Twin · Autonomous Disaster Intelligence Platform for Jammu &amp; Kashmir, India</p>
           <p className="mt-1">Demo only — not for actual emergency use</p>
         </div>
       </div>

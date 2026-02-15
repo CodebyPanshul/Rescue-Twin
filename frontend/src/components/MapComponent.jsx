@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Polygon, Polyline, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, Polyline, Marker, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { DISTRICT_POLYGONS } from '../constants/mapData';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -19,6 +20,16 @@ const shelterIcon = new L.DivIcon({
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
+});
+
+const userLocationIcon = new L.DivIcon({
+  className: 'user-location-icon',
+  html: `<div style="width:28px;height:28px;background:#3b82f6;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">
+    <div style="width:8px;height:8px;background:white;border-radius:50%;"></div>
+  </div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -14],
 });
 
 const RISK_COLORS = {
@@ -39,20 +50,6 @@ function getRiskOpacity(riskScore, isFlooded) {
   if (!isFlooded) return 0.2;
   return Math.min(0.25 + riskScore * 0.45, 0.7);
 }
-
-// Jammu and Kashmir, India — district polygons (lat, lng)
-const DISTRICT_POLYGONS = {
-  d1: [[34.10, 74.75], [34.10, 74.85], [34.06, 74.85], [34.06, 74.75]],
-  d2: [[34.25, 74.73], [34.25, 74.83], [34.21, 74.83], [34.21, 74.73]],
-  d3: [[34.04, 74.72], [34.04, 74.82], [34.00, 74.82], [34.00, 74.72]],
-  d4: [[33.75, 75.10], [33.75, 75.20], [33.71, 75.20], [33.71, 75.10]],
-  d5: [[33.89, 74.85], [33.89, 74.95], [33.85, 74.95], [33.85, 74.85]],
-  d6: [[34.22, 74.30], [34.22, 74.40], [34.18, 74.40], [34.18, 74.30]],
-  d7: [[32.75, 74.82], [32.75, 74.92], [32.71, 74.92], [32.71, 74.82]],
-  d8: [[32.95, 75.08], [32.95, 75.18], [32.91, 75.18], [32.91, 75.08]],
-  d9: [[32.39, 75.47], [32.39, 75.57], [32.35, 75.57], [32.35, 75.47]],
-  d10: [[34.55, 74.22], [34.55, 74.32], [34.51, 74.32], [34.51, 74.22]],
-};
 
 function MapBounds({ zones }) {
   const map = useMap();
@@ -89,12 +86,23 @@ const LEGEND_ITEMS = [
   { label: 'Safe (<20%)', color: RISK_COLORS.safe },
 ];
 
+// Human vulnerability overlay: elderly clusters, schools, hospitals, high-risk zones (simulated)
+const VULNERABILITY_POINTS = [
+  { lat: 34.08, lng: 74.78, type: 'elderly', label: 'Elderly cluster (Srinagar)', risk: 'high' },
+  { lat: 34.22, lng: 74.35, type: 'school', label: 'School complex (Baramulla)', risk: 'critical' },
+  { lat: 33.73, lng: 75.15, type: 'hospital', label: 'District hospital (Anantnag)', risk: 'critical' },
+  { lat: 32.73, lng: 74.87, type: 'high_density', label: 'High-density housing (Jammu)', risk: 'high' },
+  { lat: 34.52, lng: 74.27, type: 'elderly', label: 'Elderly cluster (Kupwara)', risk: 'medium' },
+];
+
 export default function MapComponent({
   simulationData,
   layers,
   isLoading,
   selectedDistrict,
   onDistrictClick,
+  userLocation = null,
+  nearestShelterId = null,
 }) {
   const mapRef = useRef(null);
 
@@ -237,6 +245,49 @@ export default function MapComponent({
           </Polyline>
         ))}
 
+        {/* Human vulnerability overlay */}
+        {layers.vulnerability && VULNERABILITY_POINTS.map((point, i) => (
+          <CircleMarker
+            key={`vuln-${i}`}
+            center={[point.lat, point.lng]}
+            pathOptions={{
+              radius: point.risk === 'critical' ? 12 : 8,
+              color: point.risk === 'critical' ? '#dc2626' : '#f59e0b',
+              fillColor: point.risk === 'critical' ? '#ef4444' : '#f59e0b',
+              fillOpacity: 0.7,
+              weight: 2,
+            }}
+          >
+            <Popup>
+              <div className="min-w-[180px] text-slate-200">
+                <h3 className="font-semibold text-base mb-1 flex items-center gap-2">
+                  <span className="text-amber-400">👥</span>
+                  {point.label}
+                </h3>
+                <p className="text-xs text-slate-400">Type: {point.type.replace('_', ' ')}</p>
+                <p className="text-xs font-medium text-red-400">Critical Human Risk Zone</p>
+              </div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
+        {/* User's live location */}
+        {userLocation && (
+          <Marker
+            position={[userLocation.lat, userLocation.lng]}
+            icon={userLocationIcon}
+          >
+            <Popup>
+              <div className="min-w-[160px] text-slate-200">
+                <h3 className="font-semibold text-base mb-1 flex items-center gap-2">
+                  <span className="text-blue-400">📍</span> Your location
+                </h3>
+                <p className="text-xs text-slate-400">{userLocation.lat.toFixed(5)}, {userLocation.lng.toFixed(5)}</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
         {layers.shelters && simulationData?.shelters?.map((shelter) => (
           <Marker
             key={shelter.id}
@@ -248,6 +299,9 @@ export default function MapComponent({
                 <h3 className="font-semibold text-base mb-2 flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   {shelter.name}
+                  {nearestShelterId === shelter.id && (
+                    <span className="text-xs bg-sky-500/30 text-sky-300 px-1.5 py-0.5 rounded">Nearest</span>
+                  )}
                 </h3>
                 <div className="space-y-1 text-sm">
                   <p><span className="text-slate-500">Capacity:</span> {shelter.capacity.toLocaleString()}</p>

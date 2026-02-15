@@ -22,6 +22,8 @@ module.exports = {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 4s ease-in-out infinite',
         'slide-in-right': 'slideInFromRight 0.2s ease-out',
+        'risk-meter': 'riskMeter 2s ease-in-out infinite',
+        'gradient-shift': 'gradientShift 4s ease infinite',
       },
       keyframes: {
         floodSpread: {
@@ -35,6 +37,15 @@ module.exports = {
         slideInFromRight: {
           '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(0)' },
+        },
+        riskMeter: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.85' },
+        },
+        gradientShift: {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
         },
       },
     },

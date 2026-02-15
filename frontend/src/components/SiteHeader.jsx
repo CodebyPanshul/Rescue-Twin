@@ -5,14 +5,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/simulation', label: 'Simulation' },
-  { href: '/about', label: 'About' },
+  { href: '/', label: 'Home', icon: '🏠' },
+  { href: '/simulation', label: 'Simulation', icon: '🗺️' },
+  { href: '/flood-intelligence', label: 'Flood Intelligence', icon: '🌊' },
+  { href: '/command-center', label: 'Command Center', icon: '📊' },
+  { href: '/about', label: 'About', icon: 'ℹ️' },
 ];
 
-export default function SiteHeader() {
+export default function SiteHeader({ emergencyMode, onEmergencyModeChange }) {
   const pathname = (usePathname() || '/').replace(/\/$/, '') || '/';
   const [menuOpen, setMenuOpen] = useState(false);
+  const isControlled = typeof onEmergencyModeChange === 'function';
 
   useEffect(() => {
     setMenuOpen(false);
@@ -32,38 +35,51 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 shrink-0 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm safe-area-inset-top">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
-          <Link href="/" className="flex items-center gap-3 group min-w-0">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
+          <Link href="/" className="flex items-center gap-3 group min-w-0 shrink">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:shadow-sky-500/30 transition-shadow shrink-0">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 hidden xs:block">
               <span className="text-base sm:text-lg font-bold text-white tracking-tight block truncate">Rescue Twin</span>
-              <span className="hidden sm:inline block text-xs text-slate-500">AI-powered disaster digital twin</span>
+              <span className="hidden sm:inline block text-xs text-slate-500">Autonomous Disaster Intelligence</span>
             </div>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1" aria-label="Main">
-            {navItems.map(({ href, label }) => {
+          <nav className="hidden md:flex items-center gap-1 flex-1 justify-end" aria-label="Main">
+            {navItems.map(({ href, label, icon }) => {
               const norm = (p) => (p || '/').replace(/\/$/, '') || '/';
               const isActive = norm(pathname) === norm(href) || (href !== '/' && pathname.startsWith(href));
               return (
                 <Link
                   key={href}
                   href={href}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-sky-500/20 text-sky-400'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
                   }`}
                 >
+                  <span aria-hidden className="text-base">{icon}</span>
                   {label}
                 </Link>
               );
             })}
+            {isControlled && (
+              <label className="ml-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-500/40 bg-amber-500/10 cursor-pointer">
+                <span className="text-xs font-medium text-amber-300">Emergency</span>
+                <input
+                  type="checkbox"
+                  checked={!!emergencyMode}
+                  onChange={(e) => onEmergencyModeChange(e.target.checked)}
+                  className="rounded border-slate-600 bg-slate-700 text-amber-500 focus:ring-amber-500/50"
+                  aria-label="Emergency / low bandwidth mode"
+                />
+              </label>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -100,7 +116,7 @@ export default function SiteHeader() {
             aria-label="Main menu"
           >
             <div className="flex flex-col gap-1">
-              {navItems.map(({ href, label }) => {
+              {navItems.map(({ href, label, icon }) => {
                 const norm = (p) => (p || '/').replace(/\/$/, '') || '/';
                 const isActive = norm(pathname) === norm(href) || (href !== '/' && pathname.startsWith(href));
                 return (
@@ -108,16 +124,31 @@ export default function SiteHeader() {
                     key={href}
                     href={href}
                     onClick={() => setMenuOpen(false)}
-                    className={`px-4 py-3.5 rounded-xl text-base font-medium transition-colors touch-manipulation min-h-[48px] flex items-center ${
+                    className={`px-4 py-3.5 rounded-xl text-base font-medium transition-colors touch-manipulation min-h-[48px] flex items-center gap-3 ${
                       isActive
                         ? 'bg-sky-500/20 text-sky-400'
                         : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
+                    <span className="text-xl" aria-hidden>{icon}</span>
                     {label}
                   </Link>
                 );
               })}
+              {isControlled && (
+                <div className="px-4 py-3.5 flex items-center justify-between border-t border-slate-700 mt-2">
+                  <span className="text-slate-300 font-medium">Emergency mode</span>
+                  <input
+                    type="checkbox"
+                    checked={!!emergencyMode}
+                    onChange={(e) => {
+                      onEmergencyModeChange(e.target.checked);
+                      setMenuOpen(false);
+                    }}
+                    className="rounded border-slate-600 bg-slate-700 text-amber-500"
+                  />
+                </div>
+              )}
             </div>
           </nav>
         </>

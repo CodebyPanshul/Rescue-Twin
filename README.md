@@ -1,38 +1,56 @@
-# 🌊 Rescue Twin - AI-Powered Disaster Digital Twin
+# 🌊 Rescue Twin - Autonomous Disaster Intelligence Platform
 
-An intelligent disaster simulation and response planning system that models flood scenarios, calculates risk zones, and recommends evacuation routes using AI-driven analysis.
+An intelligent disaster simulation and response planning system for Jammu & Kashmir, India. Run flood and earthquake simulations, use **live location** to see if you're in a safe zone and navigate to the nearest shelter, and access AI-driven resource optimization and decision support.
 
-![Rescue Twin](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Rescue Twin](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.9+-green.svg)
 ![React](https://img.shields.io/badge/react-18.2-61DAFB.svg)
 ![FastAPI](https://img.shields.io/badge/fastapi-0.109+-009688.svg)
 
 ## 🎯 Features
 
-### Core Capabilities
-- **Interactive Map Dashboard** - OpenStreetMap-based visualization with toggleable layers
-- **Flood Simulation Engine** - Physics-based risk calculation with weighted scoring
-- **Evacuation Routing** - Dijkstra's algorithm for optimal escape routes
-- **Decision Intelligence Panel** - Real-time metrics and AI recommendations
-- **What-If Scenario Tool** - Adjust parameters and compare outcomes
-- **Ethical AI Layer** - Transparent methodology with human override
+### Live location & safety
+- **Share your location** – Use browser geolocation to see your position on the map.
+- **Safe zone check** – After running a simulation, see if you're in a **safe zone** or **at risk** based on your current position.
+- **Nearest shelter** – Shows the closest shelter name and distance (km).
+- **Navigate to shelter** – Opens Google Maps with directions from your location to the nearest shelter.
+- **Your position on the map** – Blue dot for your location; nearest shelter highlighted with a "Nearest" badge.
 
-### Mobile & smartphone
+### Core simulation
+- **Interactive Map Dashboard** – OpenStreetMap-based map with toggleable layers (zones, routes, shelters, human vulnerability overlay).
+- **Flood Simulation** – Severity and custom rainfall; risk zones, evacuation routes, AI recommendations.
+- **Earthquake Simulation** – Magnitude and epicenter; intensity zones and affected population.
+- **Evacuation Routing** – Optimal routes to shelters; copy/print report, fullscreen map, `Ctrl+Enter` to run.
+- **Ethical AI Layer** – Transparent methodology with human override.
+
+### Real-Time Flood Intelligence (tab)
+- **Live Adaptive Digital Twin** – Auto-refreshing water level, rainfall, flood radius, risk meter, projected growth chart, heatmap zones.
+- **Coming Soon** – Earthquakes, cyclones & multi-disaster intelligence.
+
+### Command Center (AI & decision support)
+- **AI Resource Optimization** – Ranked priority zones, ambulance allocation, hospital load suggestion, response-time reduction; "Why this decision?" explanation.
+- **Strategic Action Simulator** – Top 3 recommended actions with casualty/infrastructure reduction %.
+- **Cascading Disaster Chain Simulator** – Multi-disaster sequences (e.g. Earthquake → Dam → Flood).
+- **Live Resilience Index (0–100)** – Score from population density, infrastructure, hospital capacity, disaster intensity.
+- **Human Vulnerability Overlay** – Elderly clusters, schools, hospitals, high-risk zones on the map.
+- **Infrastructure Stress Simulation** – ICU, power, water, transport stress; collapse probability.
+- **Disaster Economy Impact Predictor** – Economic loss range, repair cost, recovery time.
+- **AI Explainability Panel** – "Why is this marked critical?" with key factors.
+- **Smart Alert Generator** – Evacuation messages in English, Hindi, and regional language.
+- **Simulation Training Mode** – Practice scenarios, compare manual vs AI allocation.
+
+### Emergency & mobile
+- **Emergency mode** – Toggle in header for simplified UI and SMS-style alert preview.
+- **Responsive layout** – Touch-friendly, hamburger menu, Add to Home Screen support.
+
+### Technical highlights
 - **Responsive layout** – Simulation page stacks map and controls on small screens; map stays on top with scrollable controls below.
 - **Touch-friendly** – Large tap targets (48px), no hover-only actions.
 - **Mobile menu** – Hamburger menu in the header for Home / Simulation / About on phones.
 - **Add to Home Screen** – Use your browser’s “Add to Home Screen” (or “Install app”) so you can open Rescue Twin like an app. A web app manifest is included.
 
-### Technical Highlights
-- Real-time flood zone visualization with risk-based coloring
-- Dynamic evacuation route calculation avoiding flooded roads
-- AI confidence scoring and explainable recommendations
-- Responsive design with dark theme emergency aesthetics
-- **Copy report** – Copy simulation summary to clipboard for sharing
-- **Print report** – Open a print-friendly report in a new window
-- **Fullscreen map** – Toggle sidebar to expand the map (toolbar button)
-- **Keyboard shortcut** – `Ctrl+Enter` (or `Cmd+Enter`) to run simulation
-- **Last run on home** – Home page shows your most recent simulation with a quick link back
+### Technical highlights (continued)
+- Real-time flood zone visualization; evacuation routes; AI confidence scoring; dark theme; copy/print report; fullscreen map; `Ctrl+Enter`; last run on home.
 
 ## 🏗 Architecture
 
