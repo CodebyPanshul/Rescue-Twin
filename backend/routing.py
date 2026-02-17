@@ -12,6 +12,7 @@ import networkx as nx
 from models import (
     Coordinate, District, Shelter, FloodZone, EvacuationRoute
 )
+from simulation import load_districts
 
 
 def haversine_distance(coord1: Coordinate, coord2: Coordinate) -> float:
@@ -42,7 +43,13 @@ def load_road_network() -> Dict:
 
 def build_graph(
     road_network: Dict,
-    flooded_districts: Set[str]
+    flooded_districts: Set[str],
+    closed_districts: Set[str] = set(),
+    traffic_multiplier: float = 1.0,
+    depth_by_district: Optional[Dict[str, float]] = None,
+    elevation_by_district: Optional[Dict[str, float]] = None,
+    block_depth_m: float = 0.7,
+    high_clearance_m: float = 0.3,
 ) -> nx.Graph:
     """
     Build a weighted graph from road network, excluding flooded roads.
@@ -66,36 +73,64 @@ def build_graph(
             is_shelter=node.get("is_shelter", False)
         )
     
-    # Add edges (roads), excluding flooded ones
+    closed = set(closed_districts)
+    deg = {}
+    for e in road_network["edges"]:
+        a = e["from"]
+        b = e["to"]
+        deg[a] = deg.get(a, 0) + 1
+        deg[b] = deg.get(b, 0) + 1
     for edge in road_network["edges"]:
         from_node = edge["from"]
         to_node = edge["to"]
         
-        # Check if either endpoint is in a flooded district
         from_district = G.nodes[from_node].get("district_id")
         to_district = G.nodes[to_node].get("district_id")
-        
-        # Skip edges in flooded districts (unless connecting to shelter)
         from_flooded = from_district in flooded_districts
         to_flooded = to_district in flooded_districts
         from_is_shelter = G.nodes[from_node].get("is_shelter", False)
         to_is_shelter = G.nodes[to_node].get("is_shelter", False)
-        
-        # Allow edge if it leads to a shelter, even in flooded area
+        if from_district in closed or to_district in closed:
+            continue
         if (from_flooded and not to_is_shelter) or (to_flooded and not from_is_shelter):
             if from_flooded and to_flooded:
                 continue  # Both endpoints flooded, skip
+        if depth_by_district:
+            d_from = depth_by_district.get(from_district, 0.0)
+            d_to = depth_by_district.get(to_district, 0.0)
+            if (d_from >= block_depth_m and not from_is_shelter) or (d_to >= block_depth_m and not to_is_shelter):
+                continue
         
-        # Calculate distance as weight
         coord1 = Coordinate(lat=G.nodes[from_node]["lat"], lng=G.nodes[from_node]["lng"])
         coord2 = Coordinate(lat=G.nodes[to_node]["lat"], lng=G.nodes[to_node]["lng"])
         distance = haversine_distance(coord1, coord2)
         
-        # Add flood penalty if partially flooded
+        penalty = 1.0
         if from_flooded or to_flooded:
-            distance *= 2.0  # Penalty for flooded routes
+            penalty *= 2.0  # generic flood penalty
+        if depth_by_district:
+            d_from = depth_by_district.get(from_district, 0.0)
+            d_to = depth_by_district.get(to_district, 0.0)
+            if d_from > 0 or d_to > 0:
+                penalty *= 1.2
+            high_clearance = (high_clearance_m <= d_from < block_depth_m) or (high_clearance_m <= d_to < block_depth_m)
+        else:
+            high_clearance = False
+        if elevation_by_district and distance > 0:
+            e1 = elevation_by_district.get(from_district)
+            e2 = elevation_by_district.get(to_district)
+            if e1 is not None and e2 is not None:
+                slope = abs(e2 - e1) / (distance * 1000)  # rise per meter
+                penalty *= (1.0 + min(slope / 0.05, 0.5))
+        if traffic_multiplier and traffic_multiplier > 0:
+            penalty *= max(traffic_multiplier, 0.1)
+        d_from_deg = deg.get(from_node, 1)
+        d_to_deg = deg.get(to_node, 1)
+        inter_pen = 1.0 + min(max(d_from_deg - 2, 0), 4) * 0.05
+        inter_pen = max(inter_pen, 1.0 + min(max(d_to_deg - 2, 0), 4) * 0.05)
+        penalty *= inter_pen
         
-        G.add_edge(from_node, to_node, weight=distance)
+        G.add_edge(from_node, to_node, weight=distance * penalty, high_clearance=high_clearance)
     
     return G
 
@@ -147,6 +182,21 @@ def path_to_coordinates(graph: nx.Graph, path: List[str]) -> List[Coordinate]:
     return coordinates
 
 
+def find_nearest_node_id(graph: nx.Graph, lat: float, lng: float) -> Optional[str]:
+    best = None
+    best_d = float("inf")
+    for nid, data in graph.nodes(data=True):
+        dy = data.get("lat")
+        dx = data.get("lng")
+        if dy is None or dx is None:
+            continue
+        d = (dy - lat) * (dy - lat) + (dx - lng) * (dx - lng)
+        if d < best_d:
+            best_d = d
+            best = nid
+    return best
+
+
 def compute_evacuation_routes(
     flood_zones: List[FloodZone],
     shelters: List[Shelter]
@@ -167,13 +217,12 @@ def compute_evacuation_routes(
     # Get flooded district IDs
     flooded_districts = {fz.district_id for fz in flood_zones if fz.is_flooded}
     
-    # Build graph excluding flooded roads
-    graph = build_graph(road_network, flooded_districts)
+    # Build graph excluding flooded roads and applying depth penalties
+    depth_by = {fz.district_id: fz.flood_depth for fz in flood_zones}
+    elev_by = {d.id: d.elevation for d in load_districts()}
+    graph = build_graph(road_network, flooded_districts, set(), 1.0, depth_by, elev_by)
     
-    # Get shelter node IDs
     shelter_nodes = [node["id"] for node in road_network["nodes"] if node.get("is_shelter")]
-    
-    # Map shelter nodes to shelter info
     shelter_map = {s.id: s for s in shelters}
     
     routes = []
@@ -197,22 +246,32 @@ def compute_evacuation_routes(
             distances, paths = nx.single_source_dijkstra(graph, start_node)
         except nx.NetworkXNoPath:
             continue
-
-        # Collect reachable shelters with distances
-        reachable = [
-            (sid, distances[sid], paths[sid])
-            for sid in shelter_nodes if sid in distances
-        ]
-        # Sort by distance and take top K
-        reachable.sort(key=lambda x: x[1])
+        best_sid = None
+        best_dist = float("inf")
+        for sid in shelter_nodes:
+            if sid in distances and distances[sid] < best_dist:
+                best_dist = distances[sid]
+                best_sid = sid
+        if best_sid is None:
+            continue
         K = 3
-        for rank, (sid, dist, path) in enumerate(reachable[:K]):
+        k_paths = []
+        try:
+            gen = nx.shortest_simple_paths(graph, start_node, best_sid, weight="weight")
+            for p in gen:
+                k_paths.append(p)
+                if len(k_paths) >= K:
+                    break
+        except nx.NetworkXNoPath:
+            continue
+        for rank, path in enumerate(k_paths):
+            dist = 0.0
+            for u, v in zip(path[:-1], path[1:]):
+                dist += (graph.get_edge_data(u, v) or {}).get("weight", 0.0)
             coordinates = path_to_coordinates(graph, path)
             time_minutes = (dist / 30) * 60 if dist else 0
-
-            # Check if route passes through heavily flooded areas
             is_accessible = True
-            for node_id in path[1:-1]:  # Exclude start and end
+            for node_id in path[1:-1]:
                 node_district = graph.nodes[node_id].get("district_id")
                 if node_district in flooded_districts:
                     for fz_check in flood_zones:
@@ -221,17 +280,23 @@ def compute_evacuation_routes(
                             break
                 if not is_accessible:
                     break
-
-            to_shelter_name = shelter_map.get(sid).name if sid in shelter_map else None
+            to_shelter_name = shelter_map.get(best_sid).name if best_sid in shelter_map else None
+            vehicle_note = None
+            for u, v in zip(path[:-1], path[1:]):
+                ed = graph.get_edge_data(u, v) or {}
+                if ed.get("high_clearance"):
+                    vehicle_note = "High-clearance only"
+                    break
             routes.append(EvacuationRoute(
                 from_district=fz.district_id,
-                to_shelter=sid,
+                to_shelter=best_sid,
                 to_shelter_name=to_shelter_name,
                 path=coordinates,
                 distance_km=round(dist, 2) if dist else 0,
                 estimated_time_minutes=round(time_minutes, 1),
                 is_accessible=is_accessible,
-                rank=rank
+                rank=rank,
+                vehicle_note=vehicle_note
             ))
     
     return routes

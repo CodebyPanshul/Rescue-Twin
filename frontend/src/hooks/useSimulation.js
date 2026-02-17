@@ -7,7 +7,9 @@ const DEFAULT_LAYERS = {
   floodZones: true,
   routes: true,
   shelters: true,
+  hospitals: true,
   vulnerability: false,
+  resources: true,
 };
 
 export function useSimulation() {

@@ -4,6 +4,7 @@ cascading chains, resilience score, infrastructure stress, economy impact, alert
 """
 import hashlib
 import random
+import os
 from datetime import datetime
 from typing import List
 
@@ -45,34 +46,18 @@ def _risk_label(level: RiskLevel) -> str:
     return level.value.capitalize()
 
 
-# --- Live Flood Snapshot (simulated real-time) ---
+from services.flood_live_service import get_live_snapshot
+from services.simulation_service import run_simulation
+from models import Severity
+
+
 @router.get("/flood-live", response_model=LiveFloodSnapshot)
 async def get_live_flood_snapshot(
     seed: int = Query(default=None, description="Optional seed for reproducibility"),
 ):
-    """Returns a live adaptive flood digital twin snapshot. Simulate auto-update every 5–10s."""
     try:
-        rng = random.Random(seed if seed is not None else datetime.utcnow().timestamp() % 1e6)
-        base = 0.3 + rng.random() * 0.5
-        water_level = round(0.5 + base * 2.5, 2)
-        rainfall = round(25 + base * 75, 1)
-        radius = round(2 + base * 8, 1)
-        risk_score = min(0.95, round(0.2 + base * 0.6 + rng.random() * 0.15, 3))
-        level = _risk_level_from_score(risk_score)
-        zone_heatmap = [
-            {"district_id": d, "district_name": DISTRICT_NAMES.get(d, d), "intensity": round(risk_score * (0.5 + rng.random() * 0.6), 3)}
-            for d in list(DISTRICT_NAMES.keys())[:6]
-        ]
-        return LiveFloodSnapshot(
-            water_level_m=water_level,
-            rainfall_intensity_mm_hr=rainfall,
-            flood_spread_radius_km=radius,
-            risk_forecast_30min=level,
-            risk_score=risk_score,
-            risk_level_label=_risk_label(level),
-            timestamp=datetime.utcnow().isoformat() + "Z",
-            zone_heatmap=zone_heatmap,
-        )
+        snap = get_live_snapshot()
+        return snap
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -133,6 +118,58 @@ async def resource_optimize(req: ResourceOptimizationRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# --- Infrastructure Functional Impact via Fragility Curves ---
+@router.get("/infrastructure-impact", response_model=InfrastructureStressResponse)
+async def get_infrastructure_impact(
+    intensity: Severity = Query(default=Severity.MEDIUM, description="Flood severity for simulation"),
+):
+    """
+    Compute functional impact for shelters/hospitals using simple fragility curves vs flood depth.
+    """
+    try:
+        sim = run_simulation(severity=intensity)
+        zones = {z.district_id: z for z in sim.flood_zones}
+        systems: List[SystemStress] = []
+        # Use shelters as proxy facilities; extend later for hospitals
+        for s in sim.shelters:
+            depth = zones.get(s.district_id).flood_depth if s.district_id in zones else 0.0
+            if depth <= 0:
+                stress = 10.0
+                collapse = 1.0
+                status = "stable"
+            elif depth < 0.3:
+                stress = 25.0
+                collapse = 3.0
+                status = "stable"
+            elif depth < 0.6:
+                stress = 55.0
+                collapse = 8.0
+                status = "stressed"
+            elif depth < 1.0:
+                stress = 75.0
+                collapse = 18.0
+                status = "stressed"
+            else:
+                stress = 92.0
+                collapse = 35.0
+                status = "critical"
+            systems.append(
+                SystemStress(
+                    system_name=f"Shelter: {s.name}",
+                    stress_pct=round(stress, 1),
+                    collapse_probability_pct=round(collapse, 1),
+                    time_before_failure_minutes=None,
+                    status=status,
+                )
+            )
+        overall = min(100.0, sum(x.stress_pct for x in systems) / max(len(systems), 1))
+        return InfrastructureStressResponse(
+            systems=systems,
+            overall_collapse_risk_pct=round(overall * 0.4, 1),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- Strategic Action Simulator ---
 @router.get("/strategic-actions", response_model=StrategicActionsResponse)
@@ -261,39 +298,49 @@ async def get_resilience_score(
 async def get_infrastructure_stress(
     scenario: str = Query(default="flood_high"),
 ):
-    """ICU overload, power grid, water, transport stress; collapse probability and time before failure."""
-    systems = [
-        SystemStress(
-            system_name="ICU / Hospital capacity",
-            stress_pct=72.0,
-            collapse_probability_pct=18.0,
-            time_before_failure_minutes=120,
-            status="stressed",
-        ),
-        SystemStress(
-            system_name="Power grid",
-            stress_pct=58.0,
-            collapse_probability_pct=12.0,
-            time_before_failure_minutes=240,
-            status="stressed",
-        ),
-        SystemStress(
-            system_name="Water supply",
-            stress_pct=65.0,
-            collapse_probability_pct=15.0,
-            time_before_failure_minutes=180,
-            status="stressed",
-        ),
-        SystemStress(
-            system_name="Transportation (roads)",
-            stress_pct=80.0,
-            collapse_probability_pct=25.0,
-            time_before_failure_minutes=90,
-            status="critical",
-        ),
-    ]
-    overall = int(sum(s.collapse_probability_pct for s in systems) / len(systems))
-    return InfrastructureStressResponse(systems=systems, overall_collapse_risk_pct=min(35, overall + 5))
+    """Shelter/hospital functional impact derived from flood depth via fragility curves."""
+    try:
+        sim = run_simulation(severity=Severity.HIGH if "high" in (scenario or "").lower() else Severity.MEDIUM)
+        zones = {z.district_id: z for z in sim.flood_zones}
+        systems: List[SystemStress] = []
+        for s in sim.shelters:
+            depth = zones.get(s.district_id).flood_depth if s.district_id in zones else 0.0
+            if depth <= 0:
+                stress = 10.0
+                collapse = 1.0
+                status = "stable"
+            elif depth < 0.3:
+                stress = 25.0
+                collapse = 3.0
+                status = "stable"
+            elif depth < 0.6:
+                stress = 55.0
+                collapse = 8.0
+                status = "stressed"
+            elif depth < 1.0:
+                stress = 75.0
+                collapse = 18.0
+                status = "stressed"
+            else:
+                stress = 92.0
+                collapse = 35.0
+                status = "critical"
+            systems.append(
+                SystemStress(
+                    system_name=f"Shelter: {s.name}",
+                    stress_pct=round(stress, 1),
+                    collapse_probability_pct=round(collapse, 1),
+                    time_before_failure_minutes=None,
+                    status=status,
+                )
+            )
+        overall = min(100.0, sum(x.stress_pct for x in systems) / max(len(systems), 1))
+        return InfrastructureStressResponse(
+            systems=systems,
+            overall_collapse_risk_pct=round(overall * 0.4, 1),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # --- Economy Impact ---

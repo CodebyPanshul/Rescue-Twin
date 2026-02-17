@@ -14,7 +14,7 @@ export function Panel({ title, icon, children, className = '', badge }) {
           </span>
         )}
       </div>
-      <CardContent className="p-4 flex-1 overflow-y-auto">{children}</CardContent>
+      <CardContent className="p-4 md:flex-1 md:overflow-y-auto">{children}</CardContent>
     </Card>
   );
 }

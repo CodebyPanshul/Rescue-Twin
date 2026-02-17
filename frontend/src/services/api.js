@@ -131,4 +131,58 @@ export const generateAlert = async (riskSeverity, language = 'en') => {
   return intelligenceRequest(() => api.post('/intelligence/alerts', { risk_severity: riskSeverity, language }));
 };
 
+export const getResources = async () => {
+  try {
+    const response = await api.get('/resources');
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error) || 'Failed to load resources');
+  }
+};
+
+export const updateResourcePositions = async (updates = []) => {
+  try {
+    const response = await api.post('/resources/update', { updates });
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error) || 'Failed to update resources');
+  }
+};
+
+export const assignResources = async (body = {}) => {
+  try {
+    const response = await api.post('/resources/assign', body);
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error) || 'Failed to assign resources');
+  }
+};
+
+export const getAvailableAmbulances = async () => {
+  try {
+    const response = await api.get('/resources/available-ambulances');
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error) || 'Failed to load ambulances');
+  }
+};
+
+export const getHospitals = async () => {
+  try {
+    const response = await api.get('/hospitals');
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error) || 'Failed to load hospitals');
+  }
+};
+
+export const getNearestAmbulance = async (districtId) => {
+  try {
+    const response = await api.get('/resources/nearest-ambulance', { params: { district_id: districtId } });
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error) || 'Failed to find nearest ambulance');
+  }
+};
+
 export default api;

@@ -3,6 +3,17 @@ Application configuration for Rescue Twin API.
 """
 import os
 from typing import List
+try:
+    from dotenv import load_dotenv  # type: ignore
+    # Load .env from backend folder (when running `cd backend && python main.py`)
+    load_dotenv()
+    # Also try project root .env (when backend runs from root)
+    _root_env = os.path.join(os.path.dirname(__file__), "..", ".env")
+    if os.path.exists(_root_env):
+        load_dotenv(_root_env)
+except Exception:
+    # If python-dotenv isn't available or .env missing, continue with OS env only
+    pass
 
 # CORS origins for frontend
 _DEFAULT_ORIGINS = [

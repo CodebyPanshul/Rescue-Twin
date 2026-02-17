@@ -43,6 +43,8 @@ export default function ControlPanel({
   onMagnitudeChange,
   epicenter,
   onEpicenterChange,
+  onAssignResources = null,
+  assigning = false,
 }) {
   const isFlood = disasterType === 'flood';
 
@@ -169,6 +171,14 @@ export default function ControlPanel({
               <span className="text-sm text-slate-300 group-hover:text-slate-200">Shelters</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" checked={layers.hospitals} onChange={() => onLayerToggle('hospitals')} className="rounded border-slate-600 bg-slate-700 text-sky-500 focus:ring-sky-500/50" />
+              <span className="text-sm text-slate-300 group-hover:text-slate-200">Hospitals</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" checked={layers.resources} onChange={() => onLayerToggle('resources')} className="rounded border-slate-600 bg-slate-700 text-sky-500 focus:ring-sky-500/50" />
+              <span className="text-sm text-slate-300 group-hover:text-slate-200">Resources</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer group">
               <input type="checkbox" checked={layers.vulnerability} onChange={() => onLayerToggle('vulnerability')} className="rounded border-slate-600 bg-slate-700 text-amber-500 focus:ring-amber-500/50" />
               <span className="text-sm text-slate-300 group-hover:text-slate-200">👥 Human vulnerability overlay</span>
             </label>
@@ -207,6 +217,20 @@ export default function ControlPanel({
             </svg>
             {isFlood ? 'Demo: high severity flood' : 'Demo: M6.5 Srinagar'}
           </button>
+          {onAssignResources && isFlood && (
+            <button
+              type="button"
+              onClick={onAssignResources}
+              disabled={assigning}
+              className="w-full flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-medium py-3 px-4 min-h-[44px] transition-colors touch-manipulation"
+            >
+              {assigning ? (
+                <><span className="h-4 w-4 border-2 border-emerald-300/30 border-t-emerald-300 rounded-full animate-spin" /> Assigning…</>
+              ) : (
+                <>Assign resources</>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </Panel>

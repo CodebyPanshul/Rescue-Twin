@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "source": "Copernicus Sentinel (demo)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [74.809, 34.110],
+            [74.835, 34.110],
+            [74.845, 34.130],
+            [74.830, 34.145],
+            [74.805, 34.140],
+            [74.800, 34.125],
+            [74.809, 34.110]
+          ]
+        ]
+      }
+    }
+  ]
+}

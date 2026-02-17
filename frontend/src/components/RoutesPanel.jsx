@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Panel } from './ui/Panel';
 import { getDirectionsUrl } from '../lib/geoUtils';
+import { getAvailableAmbulances, getNearestAmbulance } from '../services/api';
 
 const ROUTE_ICON = (
   <svg className="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -18,6 +19,52 @@ export default function RoutesPanel({
   highlightedRouteKey = null,
   onHighlightRoute = () => {},
 }) {
+  const [ambulances, setAmbulances] = useState([]);
+  const [nearest, setNearest] = useState(null);
+  const [loadingNearest, setLoadingNearest] = useState(false);
+  const [errorNearest, setErrorNearest] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    let timer = null;
+    const tick = async () => {
+      try {
+        const list = await getAvailableAmbulances();
+        if (!active) return;
+        setAmbulances(Array.isArray(list) ? list : []);
+      } finally {
+        if (active) timer = setTimeout(tick, 5000);
+      }
+    };
+    tick();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      if (!selectedDistrict) {
+        setNearest(null);
+        return;
+      }
+      setLoadingNearest(true);
+      setErrorNearest(null);
+      try {
+        const res = await getNearestAmbulance(selectedDistrict);
+        if (cancelled) return;
+        setNearest(res?.found ? res : null);
+      } catch (e) {
+        if (!cancelled) setErrorNearest(String(e?.message || 'Failed to load'));
+      } finally {
+        if (!cancelled) setLoadingNearest(false);
+      }
+    }
+    run();
+    return () => { cancelled = true; };
+  }, [selectedDistrict]);
   const routes = simulationData?.evacuation_routes || [];
   const districtRoutes = useMemo(() => {
     if (!routes.length) return [];
@@ -107,6 +154,43 @@ export default function RoutesPanel({
               </div>
             );
           })}
+        </div>
+      )}
+      {selectedDistrict && (
+        <div className="mt-4 pt-3 border-t border-slate-700/50">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-semibold text-slate-200">Nearest ambulance</h4>
+            {loadingNearest && <span className="text-xs text-slate-500">Finding…</span>}
+          </div>
+          {!nearest ? (
+            <div className="text-sm text-slate-400">
+              {errorNearest ? errorNearest : 'No ambulance found nearby.'}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-slate-600/80 bg-slate-700/30 p-3 text-sm">
+              <div className="font-medium text-slate-200 mb-1">Ambulance {nearest?.ambulance?.id}</div>
+              <div className="text-slate-400 mb-2">
+                <span className="mr-3">{nearest?.distance_km} km</span>
+                <span>{(nearest?.estimated_time_minutes ?? 0).toFixed(0)} min ETA</span>
+              </div>
+              {nearest?.ambulance?.location && (
+                <a
+                  href={getDirectionsUrl(
+                    nearest.ambulance.location.lat,
+                    nearest.ambulance.location.lng,
+                    // destination: use first node of path if present; else ambulance location again (fallback)
+                    nearest?.path?.[nearest.path.length - 1]?.lat ?? nearest.ambulance.location.lat,
+                    nearest?.path?.[nearest.path.length - 1]?.lng ?? nearest.ambulance.location.lng
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block px-2 py-1 rounded text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white"
+                >
+                  Directions
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )}
     </Panel>

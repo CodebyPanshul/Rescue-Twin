@@ -22,8 +22,10 @@ class LiveFloodSnapshot(BaseModel):
     risk_forecast_30min: RiskLevel
     risk_score: float = Field(ge=0, le=1)
     risk_level_label: str
+    risk_factors: dict = {}  # weights and contributions for explainability
     timestamp: str
     zone_heatmap: List[dict]  # district_id, intensity 0-1
+    stations: List[dict] = []
 
 
 # --- Resource Optimization ---

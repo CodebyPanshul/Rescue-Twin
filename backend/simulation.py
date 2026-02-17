@@ -17,7 +17,7 @@ except Exception:
     httpx = None
 
 from models import (
-    District, FloodZone, Shelter, Severity, DisasterType,
+    District, FloodZone, Shelter, Hospital, Severity, DisasterType,
     RiskMetrics, EmergencyResources, AIExplanation, Coordinate
 )
 
@@ -120,6 +120,43 @@ def load_shelters() -> List[Shelter]:
             except Exception:
                 continue
     return list(by_id.values())
+
+
+def load_hospitals() -> List[Hospital]:
+    shelters = load_shelters()
+    hospitals: List[Hospital] = []
+    for s in shelters:
+        name_l = (s.name or "").lower()
+        if "hospital" in name_l or "medical" in name_l or "clinic" in name_l:
+            hospitals.append(
+                Hospital(
+                    id=f"H-{s.id}",
+                    name=s.name,
+                    location=s.location,
+                    capacity=max(10, s.capacity // 3 if s.capacity else 20),
+                    current_occupancy=max(0, s.current_occupancy // 3 if s.current_occupancy else 0),
+                    district_id=s.district_id,
+                    icu_capacity=None,
+                    icu_occupied=None,
+                )
+            )
+    if hospitals:
+        return hospitals
+    districts = load_districts()
+    for d in districts:
+        hospitals.append(
+            Hospital(
+                id=f"H-{d.id}",
+                name=f"District Hospital {d.name}",
+                location=d.center,
+                capacity=50,
+                current_occupancy=0,
+                district_id=d.id,
+                icu_capacity=10,
+                icu_occupied=0,
+            )
+        )
+    return hospitals
 
 
 def normalize_rainfall(rainfall_mm: float, max_rainfall: float = 150.0) -> float:

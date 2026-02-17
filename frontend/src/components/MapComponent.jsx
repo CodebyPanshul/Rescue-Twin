@@ -34,6 +34,32 @@ const userLocationIcon = new L.DivIcon({
   popupAnchor: [0, -14],
 });
 
+const hospitalIcon = new L.DivIcon({
+  className: 'hospital-icon',
+  html: `<div style="width:26px;height:26px;background:#1d4ed8;border-radius:6px;border:2px solid #0f172a;display:flex;align-items:center;justify-content:center;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M10 3h4v4h4v4h-4v4h-4v-4H6V7h4z"/></svg>
+  </div>`,
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+  popupAnchor: [0, -12],
+});
+
+const ambulanceIcon = new L.DivIcon({
+  className: 'ambulance-icon',
+  html: `<div style="width:22px;height:22px;background:#ef4444;border-radius:6px;border:2px solid #0f172a;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">🚑</div>`,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+  popupAnchor: [0, -11],
+});
+
+const teamIcon = new L.DivIcon({
+  className: 'team-icon',
+  html: `<div style="width:22px;height:22px;background:#06b6d4;border-radius:6px;border:2px solid #0f172a;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">🛟</div>`,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+  popupAnchor: [0, -11],
+});
+
 const RISK_COLORS = {
   high: '#ef4444',
   medium: '#f59e0b',
@@ -106,9 +132,13 @@ export default function MapComponent({
   userLocation = null,
   nearestShelterId = null,
   highlightedRouteKey = null,
+  resources = [],
+  resourceAssignments = [],
+  hospitals = [],
 }) {
   const mapRef = useRef(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -119,6 +149,18 @@ export default function MapComponent({
       map.off('zoomend', update);
     };
   }, []);
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
+  }, []);
+
+  const offlineTile = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22512%22 height=%22512%22%3E%3Crect width=%22512%22 height=%22512%22 fill=%22%231e293b%22/%3E%3Cpath d=%22M0 0 H512 V512 H0 Z M0 64 H512 M0 128 H512 M0 192 H512 M0 256 H512 M0 320 H512 M0 384 H512 M0 448 H512 M64 0 V512 M128 0 V512 M192 0 V512 M256 0 V512 M320 0 V512 M384 0 V512 M448 0 V512%22 stroke=%22%2323344d%22 stroke-width=%221%22 fill=%22none%22/%3E%3Ctext x=%22256%22 y=%22256%22 text-anchor=%22middle%22 fill=%22%2358738a%22 font-size=%2232%22%3EOffline Map%3C/text%3E%3C/svg%3E';
 
   const clusterIcon = useMemo(() => (count) => new L.DivIcon({
     className: 'shelter-cluster-icon',
@@ -183,33 +225,33 @@ export default function MapComponent({
           <LayersControl.BaseLayer name="OSM Standard" checked>
             <TileLayer
               attribution='&copy; OpenStreetMap contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              url={online ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" : offlineTile}
             />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Carto Light">
             <TileLayer
               attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              url={online ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" : offlineTile}
               subdomains={['a','b','c','d']}
             />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Carto Dark Matter">
             <TileLayer
               attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              url={online ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : offlineTile}
               subdomains={['a','b','c','d']}
             />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="OpenTopoMap">
             <TileLayer
               attribution='Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)'
-              url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+              url={online ? "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" : offlineTile}
             />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Esri World Imagery">
             <TileLayer
               attribution='Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              url={online ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" : offlineTile}
             />
           </LayersControl.BaseLayer>
         </LayersControl>
@@ -476,6 +518,68 @@ export default function MapComponent({
             </Marker>
           ));
         })()}
+
+        {/* Hospitals overlay */}
+        {layers.hospitals && Array.isArray(hospitals) && hospitals.map((h) => (
+          <Marker key={`h-${h.id}`} position={[h.location.lat, h.location.lng]} icon={hospitalIcon}>
+            <Popup>
+              <div className="min-w-[180px] text-slate-200">
+                <h3 className="font-semibold text-base mb-1">{h.name}</h3>
+                <div className="text-xs text-slate-400">
+                  <div>Capacity: <span className="text-slate-200">{h.current_occupancy}/{h.capacity}</span></div>
+                  {h.icu_capacity != null && (
+                    <div>ICU: <span className="text-slate-200">{(h.icu_occupied ?? 0)}/{h.icu_capacity}</span></div>
+                  )}
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {layers.resources && Array.isArray(resources) && resources.map((r) => (
+          <Marker
+            key={`res-${r.id}`}
+            position={[r.location.lat, r.location.lng]}
+            icon={r.type === 'ambulance' ? ambulanceIcon : teamIcon}
+          >
+            <Popup>
+              <div className="min-w-[160px] text-slate-200">
+                <div className="font-semibold text-base mb-1">{r.type === 'ambulance' ? 'Ambulance' : 'Rescue team'} {r.id}</div>
+                <div className="text-xs text-slate-400">{r.location.lat.toFixed(5)}, {r.location.lng.toFixed(5)}</div>
+                <div className="text-xs mt-1">Status: {r.available ? 'Available' : 'Busy'}</div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {layers.resources && Array.isArray(resourceAssignments) && resourceAssignments.map((a, i) => (
+          <Polyline
+            key={`ra-${i}`}
+            positions={(a.path || []).map((c) => [c.lat, c.lng])}
+            pathOptions={{
+              color: a.vehicle_note ? '#f59e0b' : (a.resource_type === 'ambulance' ? '#ef4444' : '#06b6d4'),
+              weight: a.vehicle_note ? 4 : 3,
+              dashArray: a.vehicle_note ? '2, 8' : '6, 8',
+              opacity: a.passable === false ? 0.5 : 0.9,
+            }}
+          >
+            <Popup>
+              <div className="min-w-[180px] text-slate-200">
+                <div className="font-semibold text-base mb-1">Assignment</div>
+                <div className="text-sm"><span className="text-slate-500">Resource:</span> {a.resource_type} {a.resource_id}</div>
+                <div className="text-sm"><span className="text-slate-500">To:</span> {a.to_district_name || a.to_district_id}</div>
+                <div className="text-sm"><span className="text-slate-500">Distance:</span> {a.distance_km} km</div>
+                <div className="text-sm"><span className="text-slate-500">ETA:</span> {a.estimated_time_minutes.toFixed(0)} min</div>
+                {a.vehicle_note && (
+                  <div className="text-xs mt-1 text-amber-400">{a.vehicle_note}</div>
+                )}
+                {a.destination_hospital_name && (
+                  <div className="text-xs mt-1 text-sky-400">Hospital: {a.destination_hospital_name}{a.hospital_wait_minutes != null ? ` • est. wait ${a.hospital_wait_minutes} min` : ''}</div>
+                )}
+              </div>
+            </Popup>
+          </Polyline>
+        ))}
       </MapContainer>
 
       {/* Legend */}

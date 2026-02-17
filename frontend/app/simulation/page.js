@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
+// Use direct import to avoid dynamic chunk loader issues in dev
 import { useEmergencyMode } from '../../src/context/EmergencyContext';
 import { useSimulation } from '../../src/hooks/useSimulation';
 import { useGeolocation } from '../../src/hooks/useGeolocation';
@@ -10,23 +10,19 @@ import ControlPanel from '../../src/components/ControlPanel';
 import DecisionPanel from '../../src/components/DecisionPanel';
 import LocationSafetyPanel from '../../src/components/LocationSafetyPanel';
 import RoutesPanel from '../../src/components/RoutesPanel';
+import AmbulancesPanel from '../../src/components/AmbulancesPanel';
+import { getResources, assignResources, getHospitals } from '../../src/services/api';
 
-const MapComponent = dynamic(() => import('./SimulationMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="h-full w-full flex items-center justify-center bg-slate-800/80">
-      <div className="text-center">
-        <span className="inline-block h-8 w-8 border-2 border-sky-500/30 border-t-sky-400 rounded-full animate-spin mb-4" />
-        <p className="text-slate-400 text-sm">Loading map…</p>
-      </div>
-    </div>
-  ),
-});
+import MapComponent from '../../src/components/MapComponent';
 
 export default function SimulationPage() {
   const { emergencyMode } = useEmergencyMode();
   const [isFullscreenMap, setIsFullscreenMap] = useState(false);
   const { position: userLocation, error: locationError, loading: locationLoading, requestLocation } = useGeolocation();
+  const [resources, setResources] = useState([]);
+  const [resourceAssignments, setResourceAssignments] = useState([]);
+  const [assigning, setAssigning] = useState(false);
+  const [hospitals, setHospitals] = useState([]);
   const {
     simulationData,
     isLoading,
@@ -72,6 +68,57 @@ export default function SimulationPage() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [runSimulation, isLoading]);
+
+  useEffect(() => {
+    let active = true;
+    let timer = null;
+    const tick = async () => {
+      try {
+        const res = await getResources();
+        if (!active) return;
+        setResources(Array.isArray(res) ? res : []);
+      } catch {
+      } finally {
+        if (active) timer = setTimeout(tick, 5000);
+      }
+    };
+    tick();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    let interval = null;
+    const load = async () => {
+      try {
+        const list = await getHospitals();
+        if (!active) return;
+        setHospitals(Array.isArray(list) ? list : []);
+      } catch {}
+    };
+    load();
+    interval = setInterval(load, 30000);
+    return () => {
+      active = false;
+      if (interval) clearInterval(interval);
+    };
+  }, []);
+
+  const onAssignResources = async () => {
+    if (!simulationData) return;
+    setAssigning(true);
+    try {
+      const result = await assignResources({ severity, departure_hour: new Date().getHours() });
+      setResourceAssignments(result?.assignments || []);
+    } catch {
+      setResourceAssignments([]);
+    } finally {
+      setAssigning(false);
+    }
+  };
 
   const handleHumanOverride = useCallback(() => {
     console.info('Human override activated at:', new Date().toISOString());
@@ -173,12 +220,15 @@ export default function SimulationPage() {
               onDistrictClick={handleDistrictClick}
               userLocation={userLocation}
               nearestShelterId={nearestShelterId}
+              hospitals={hospitals}
               highlightedRouteKey={highlightedRouteKey}
+              resources={resources}
+              resourceAssignments={resourceAssignments}
             />
           </div>
         </div>
-        <aside className={`shrink-0 flex flex-col gap-4 overflow-y-auto bg-slate-900/30 transition-all
-          ${isFullscreenMap ? 'w-0 p-0 overflow-hidden border-0' : 'w-full md:w-[380px] p-4 md:pl-0 md:border-l border-slate-800/50 max-h-[55vh] md:max-h-none'}`}>
+        <aside className={`shrink-0 flex flex-col gap-4 md:overflow-y-auto bg-slate-900/30 transition-all
+          ${isFullscreenMap ? 'w-0 p-0 overflow-hidden border-0' : 'w-full md:w-[380px] p-4 md:pl-0 md:border-l border-slate-800/50'}`}>
           <LocationSafetyPanel
             position={userLocation}
             error={locationError}
@@ -192,6 +242,7 @@ export default function SimulationPage() {
             highlightedRouteKey={highlightedRouteKey}
             onHighlightRoute={setHighlightedRouteKey}
           />
+          <AmbulancesPanel simulationData={simulationData} resourceAssignments={resourceAssignments} />
           <ControlPanel
             disasterType={disasterType}
             onDisasterTypeChange={setDisasterType}
@@ -208,6 +259,8 @@ export default function SimulationPage() {
             onMagnitudeChange={setMagnitude}
             epicenter={epicenter}
             onEpicenterChange={setEpicenter}
+            onAssignResources={onAssignResources}
+            assigning={assigning}
           />
           <DecisionPanel
             simulationData={simulationData}

@@ -6,6 +6,7 @@ import CascadingChainSimulator from '../../src/components/command-center/Cascadi
 import ResilienceScoreWidget from '../../src/components/command-center/ResilienceScoreWidget';
 import HumanVulnerabilityNote from '../../src/components/command-center/HumanVulnerabilityNote';
 import InfrastructureStress from '../../src/components/command-center/InfrastructureStress';
+import HospitalsCapacityPanel from '../../src/components/command-center/HospitalsCapacityPanel';
 import EconomyImpactPredictor from '../../src/components/command-center/EconomyImpactPredictor';
 import SmartAlertGenerator from '../../src/components/command-center/SmartAlertGenerator';
 import TrainingMode from '../../src/components/command-center/TrainingMode';
@@ -36,6 +37,9 @@ export default function CommandCenterPage() {
         </section>
         <section>
           <InfrastructureStress />
+        </section>
+        <section>
+          <HospitalsCapacityPanel />
         </section>
         <section>
           <EconomyImpactPredictor />
